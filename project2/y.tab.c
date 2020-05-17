@@ -66,6 +66,7 @@
 
 	#include <stdio.h>
 	#include "symbol_table.hpp"
+	#include "tnode_stack.hpp"
 	
 	// a node of a hash-table
 	typedef struct hnode {
@@ -81,7 +82,7 @@
 	/* function definitions */
 	
 	// handle warnings
-	int yywarning(char*, char*);
+	int yywarning(const char*);
 	
 	// append a new hash-table when reaching a new scope
 	void appendHashTable();
@@ -89,8 +90,16 @@
 	int insertIntoHashTable(const char*);
 	// search for a certain identifier in the latest hash-table
 	Item* lookupInHashTable(const char*);
-	// set the value of a variable in the latest hash-table
-	void setValueInHashTable(const char*, ItemType, void*);
+	
+	// store the assignee (the identifier which is about to be assigned)
+	void storeAssigneeFromIdent();
+	
+	// in a certain operation (UNARY or BINARY), check if type(s) of operand(s) are compatible with the operation or not
+	int doOperation(Tnode*, char*, int, int);
+	// insert a new variable/constant and do the initialization with the type checking
+	int insertAndInitId(int, DataType);
+	// insert a new array of some data type
+	int insertArrayId(DataType);
 	
 	/* helper variables */
 	
@@ -99,8 +108,11 @@
 	
 	// temporally store the name of an identifier
 	char* ident = NULL;
+	
+	// temporally store the name of a variable/constant that is about to be assigned
+	char* assignee = NULL;
 
-#line 104 "y.tab.c" /* yacc.c:339  */
+#line 116 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -135,8 +147,8 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    AND = 258,
-    OR = 259,
+    OR = 258,
+    AND = 259,
     NOT = 260,
     LT = 261,
     LE = 262,
@@ -188,12 +200,13 @@ extern int yydebug;
     ID = 308,
     LITERAL_INTEGER = 309,
     LITERAL_FLOAT = 310,
-    LITERAL_STRING = 311
+    LITERAL_CHAR = 311,
+    LITERAL_STRING = 312
   };
 #endif
 /* Tokens.  */
-#define AND 258
-#define OR 259
+#define OR 258
+#define AND 259
 #define NOT 260
 #define LT 261
 #define LE 262
@@ -245,31 +258,20 @@ extern int yydebug;
 #define ID 308
 #define LITERAL_INTEGER 309
 #define LITERAL_FLOAT 310
-#define LITERAL_STRING 311
+#define LITERAL_CHAR 311
+#define LITERAL_STRING 312
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 40 "xxx.y" /* yacc.c:355  */
+#line 52 "xxx.y" /* yacc.c:355  */
 
-	// the string value
-	char* sval;
+	Tnode* tnode;
+	DataType dataType;
 
-	// the index of data type
-	int type_idx;
-	
-	// the integer value
-	int ival;
-	
-	// the boolean value
-	int bval;
-	
-	// the double value
-	double dval;
-
-#line 273 "y.tab.c" /* yacc.c:355  */
+#line 275 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -286,7 +288,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 290 "y.tab.c" /* yacc.c:358  */
+#line 292 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -528,21 +530,21 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   195
+#define YYLAST   237
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  62
+#define YYNTOKENS  63
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  21
+#define YYNNTS  23
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  70
+#define YYNRULES  62
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  114
+#define YYNSTATES  107
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   311
+#define YYMAXUTOK   312
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -582,21 +584,20 @@ static const yytype_uint8 yytranslate[] =
       30,    31,    32,    33,    34,    35,    36,    37,    38,    39,
       40,    41,    42,    43,    44,    45,    46,    47,    48,    49,
       50,    51,    52,    53,    54,    55,    56,    57,    58,    59,
-      60,    61
+      60,    61,    62
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    87,    87,    97,    98,    99,   104,   105,   106,   107,
-     108,   113,   118,   119,   124,   145,   192,   211,   212,   217,
-     218,   223,   224,   225,   226,   231,   236,   237,   238,   239,
-     240,   245,   246,   247,   252,   253,   258,   261,   262,   263,
-     264,   265,   273,   274,   275,   276,   277,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
-     299,   300,   305,   306,   307,   308,   309,   310,   315,   316,
-     321
+       0,    86,    86,    95,    96,    97,   102,   103,   104,   105,
+     106,   111,   116,   117,   122,   122,   127,   127,   132,   133,
+     138,   139,   144,   145,   150,   155,   156,   157,   162,   162,
+     167,   168,   173,   174,   175,   176,   177,   178,   179,   180,
+     181,   182,   183,   184,   186,   187,   188,   189,   190,   192,
+     193,   195,   197,   199,   270,   300,   304,   305,   310,   311,
+     316,   317,   322
 };
 #endif
 
@@ -605,7 +606,7 @@ static const yytype_uint16 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "'='", "AND", "OR", "NOT", "LT", "LE",
+  "$end", "error", "$undefined", "'='", "OR", "AND", "NOT", "LT", "LE",
   "EQ", "GE", "GT", "NE", "'+'", "'-'", "'*'", "'/'", "MOD", "UMINUS",
   "COMMA", "COLON", "PERIOD", "SEMICOLON", "OPEN_PAR", "CLOSE_PAR",
   "OPEN_SQB", "CLOSE_SQB", "OPEN_BRA", "CLOSE_BRA", "BOOLEAN", "BREAK",
@@ -613,10 +614,10 @@ static const char *const yytname[] =
   "FALSE", "FLOAT", "FOR", "IF", "INT", "NULLS", "OBJECT", "PRINT",
   "PRINTLN", "READ", "REPEAT", "RETURN", "STRING", "TO", "TRUE", "TYPE",
   "VAL", "VAR", "WHILE", "ID", "LITERAL_INTEGER", "LITERAL_FLOAT",
-  "LITERAL_STRING", "$accept", "program", "object_body", "data_type",
-  "declaration", "dclr", "val_dclr", "var_dclr", "opt_type_dclr",
-  "opt_init", "statement", "stmt", "assignment", "string_expr",
-  "numeric_expr", "numeric_term", "boolean_expr", "func_invoc",
+  "LITERAL_CHAR", "LITERAL_STRING", "$accept", "program", "object_body",
+  "data_type", "declaration", "dclr", "val_dclr", "$@1", "var_dclr", "$@2",
+  "var_dclr_postfix", "opt_type_dclr", "opt_init", "statement", "stmt",
+  "assignment", "$@3", "assignment_postfix", "expr", "func_invoc",
   "actual_argus", "opt_semi", "identifier", YY_NULLPTR
 };
 #endif
@@ -632,16 +633,16 @@ static const yytype_uint16 yytoknum[] =
      280,   281,   282,   283,   284,   285,   286,   287,   288,   289,
      290,   291,   292,   293,   294,   295,   296,   297,   298,   299,
      300,   301,   302,   303,   304,   305,   306,   307,   308,   309,
-     310,   311
+     310,   311,   312
 };
 # endif
 
-#define YYPACT_NINF -54
+#define YYPACT_NINF -36
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-54)))
+  (!!((Yystate) == (-36)))
 
-#define YYTABLE_NINF -45
+#define YYTABLE_NINF -29
 
 #define yytable_value_is_error(Yytable_value) \
   0
@@ -650,18 +651,17 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     -41,   -53,    11,   -54,    -7,   -54,   -54,    61,   119,     2,
-     119,   -54,   -54,   -54,   -53,   -53,   -54,   -54,   -54,   -54,
-       1,   -54,   -54,   -54,     1,   -54,   -54,   159,   178,    -3,
-     -54,    70,   159,   -54,   -54,     2,   -54,   122,    14,     4,
-       6,     9,   -54,   -54,   -54,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,   119,   119,    92,   104,
-     122,   -54,   -54,   -54,   -19,    34,   -19,    36,   -54,   -54,
-     -54,   -54,   -54,   -54,    19,    19,   -54,   -54,   -54,   -54,
-     -54,   -54,   159,    -3,   173,   -54,   -54,   159,    -3,     3,
-     -54,   -54,   -54,   -54,   -54,   -54,    92,    15,    92,   -54,
-      92,   -54,   -54,   159,    -3,     2,   -54,   159,    -3,   -54,
-     159,    -3,    21,   -54
+     -24,   -35,    24,   -36,     1,   -36,   -36,    41,    99,    99,
+      99,   -36,   -36,   -36,   -35,   -35,   -36,   -36,   -36,   -36,
+     -36,     4,   -36,   -36,   -36,     4,   -36,   196,   -36,    26,
+     220,     5,   -36,   178,   -36,   -36,   -36,   -36,   -36,    99,
+      99,    99,    99,    99,    99,    99,    99,    99,    99,    99,
+      99,    99,    59,    99,     2,   -36,    32,    33,   209,   220,
+      93,    93,    93,    93,    93,    93,     3,     3,   -36,   -36,
+     -36,   -36,   196,    -2,    -1,    99,    99,   -36,    19,    43,
+      19,   -36,    51,    99,   -36,   -36,   196,   119,   -36,   -36,
+     -36,   -36,   -36,   -36,    99,    31,    99,   -36,   196,    54,
+     196,    99,   196,    99,   158,   196,   -36
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -669,34 +669,33 @@ static const yytype_int16 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     0,     0,    70,     0,     1,     5,     0,     0,     0,
-       0,     2,    59,    58,     0,     0,    46,    45,    34,     4,
-      69,    12,    13,     3,    69,    26,    27,    28,    36,    29,
-      30,    35,     0,    54,    44,     0,    42,    36,     0,    44,
-      20,    20,    68,    11,    25,     0,     0,     0,     0,     0,
+       0,     0,     0,    62,     0,     1,     5,     0,     0,     0,
+       0,     2,    48,    47,     0,     0,    43,    42,    51,    52,
+       4,    61,    12,    13,     3,    61,    25,    26,    27,    54,
+      44,    54,    37,     0,    14,    16,    60,    11,    24,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,    43,    53,    55,     0,     0,     0,    24,    47,    48,
-      49,    50,    51,    52,    37,    38,    39,    40,    41,    57,
-      56,    31,    32,    33,    35,    61,    65,    66,    67,     0,
-       9,     6,    10,     8,     7,    19,     0,    19,     0,    17,
-       0,    60,    14,    15,    16,     0,    21,    22,    23,    62,
-      63,    64,     0,    18
+       0,     0,     0,     0,     0,    55,    21,    21,    45,    46,
+      38,    39,    49,    40,    41,    50,    32,    33,    34,    35,
+      36,    57,    59,     0,     0,     0,     0,    29,     0,     0,
+       0,    17,    23,     0,    56,    53,    30,     0,     9,     6,
+      10,     8,     7,    20,     0,    20,     0,    18,    58,     0,
+      15,     0,    22,     0,     0,    31,    19
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -54,   -54,   -54,   -18,   -54,   -54,   -54,   -54,    18,   -54,
-     -54,   -54,   -54,   -28,    -4,    -2,     7,   -54,   -54,    32,
-      -1
+     -36,   -36,   -36,   -22,   -36,   -36,   -36,   -36,   -36,   -36,
+     -36,     6,   -36,   -36,   -36,   -36,   -36,   -36,    -8,   -36,
+     -36,    35,    70
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     7,    95,    19,    20,    21,    22,    65,    99,
-      23,    24,    25,    26,    32,    28,    29,    30,    89,    43,
-      34
+      -1,     2,     7,    93,    20,    21,    22,    56,    23,    57,
+      81,    79,    97,    24,    25,    26,    54,    77,    27,    28,
+      73,    37,    31
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -704,94 +703,99 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       4,    56,    57,    27,     1,     3,    31,    36,    37,    39,
-      90,     5,    91,    40,    41,    33,     9,    38,    56,    57,
-       6,    92,   100,    42,    93,    35,    64,   101,    63,    66,
-      81,    86,    94,    60,    53,    54,    55,    96,    62,    98,
-     105,    68,    69,    70,    71,    72,    73,   113,    97,    74,
-      75,    76,    77,    78,    82,    87,    44,    84,    84,    67,
-       3,    16,    17,    79,    80,    83,    88,     8,   102,     0,
-     106,     0,   109,    58,     0,     9,     0,   -44,   -44,   -44,
-     -44,   -44,   -44,   -44,    10,   -44,   -44,   -44,     0,    11,
-       0,     0,   103,    59,   107,    84,   110,    84,     8,    84,
-      12,   112,     0,   104,     0,   108,     9,   111,     0,     0,
-       8,     0,     0,     0,    13,    10,    14,    15,     9,     3,
-      16,    17,    18,     0,     0,     8,     0,    10,    85,     0,
-       0,    12,     0,     9,     0,    51,    52,    53,    54,    55,
-       0,     0,    10,    12,     0,    13,    61,     0,     0,     0,
-       3,    16,    17,    18,     0,     0,     0,    13,    12,     0,
-       0,     0,     3,    16,    17,    18,    45,    46,    47,    48,
-      49,    50,    13,     0,     0,     0,     0,     3,    16,    17,
-     -44,   -44,   -44,   -44,   -44,   -44,   -44,     0,   -44,   -44,
-     -44,    51,    52,    53,    54,    55
+      30,    32,    33,    39,    40,    75,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,    83,    49,    50,
+      51,     1,    84,     3,     5,    85,    36,    76,     6,   -28,
+      53,    58,    59,    60,    61,    62,    63,    64,    65,    66,
+      67,    68,    69,    70,    72,    74,    94,     8,    88,    52,
+      89,    53,    78,    80,    96,     9,   101,   103,    95,    90,
+      38,     0,    91,    82,    10,     8,     0,    86,    87,    11,
+      92,     4,     0,     9,     0,    98,     0,    29,     0,     0,
+      12,     0,    10,    71,    34,    35,   100,     0,   102,     0,
+       0,     0,     0,   104,    13,   105,    14,    15,    12,     3,
+      16,    17,    18,    19,     0,     8,    47,    48,    49,    50,
+      51,     0,    13,     9,     0,     0,     0,     3,    16,    17,
+      18,    19,    10,    39,    40,     0,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,     0,    12,     0,
+       0,     0,     0,     0,     0,    99,     0,     0,     0,     0,
+       0,     0,    13,     0,     0,     0,     0,     3,    16,    17,
+      18,    19,    39,    40,     0,    41,    42,    43,    44,    45,
+      46,    47,    48,    49,    50,    51,     0,     0,     0,     0,
+       0,     0,    39,    40,   106,    41,    42,    43,    44,    45,
+      46,    47,    48,    49,    50,    51,     0,     0,     0,     0,
+      39,    40,    55,    41,    42,    43,    44,    45,    46,    47,
+      48,    49,    50,    51,    40,     0,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,    41,    42,    43,
+      44,    45,    46,    47,    48,    49,    50,    51
 };
 
 static const yytype_int8 yycheck[] =
 {
-       1,     4,     5,     7,    45,    58,     7,     9,    10,    10,
-      29,     0,    31,    14,    15,     8,    14,    10,     4,     5,
-      27,    40,    19,    22,    43,    23,    20,    24,    24,    20,
-      58,    59,    51,    35,    15,    16,    17,     3,    24,     3,
-      25,    45,    46,    47,    48,    49,    50,    26,    66,    51,
-      52,    53,    54,    55,    58,    59,    24,    58,    59,    41,
-      58,    59,    60,    56,    57,    58,    59,     6,    96,    -1,
-      98,    -1,   100,     3,    -1,    14,    -1,     7,     8,     9,
-      10,    11,    12,    13,    23,    15,    16,    17,    -1,    28,
-      -1,    -1,    96,    23,    98,    96,   100,    98,     6,   100,
-      39,   105,    -1,    96,    -1,    98,    14,   100,    -1,    -1,
-       6,    -1,    -1,    -1,    53,    23,    55,    56,    14,    58,
-      59,    60,    61,    -1,    -1,     6,    -1,    23,    24,    -1,
-      -1,    39,    -1,    14,    -1,    13,    14,    15,    16,    17,
-      -1,    -1,    23,    39,    -1,    53,    24,    -1,    -1,    -1,
-      58,    59,    60,    61,    -1,    -1,    -1,    53,    39,    -1,
-      -1,    -1,    58,    59,    60,    61,     7,     8,     9,    10,
-      11,    12,    53,    -1,    -1,    -1,    -1,    58,    59,    60,
-       7,     8,     9,    10,    11,    12,    13,    -1,    15,    16,
-      17,    13,    14,    15,    16,    17
+       8,     9,    10,     4,     5,     3,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    16,    17,    19,    15,    16,
+      17,    45,    24,    58,     0,    26,    22,    25,    27,     3,
+      25,    39,    40,    41,    42,    43,    44,    45,    46,    47,
+      48,    49,    50,    51,    52,    53,     3,     6,    29,    23,
+      31,    25,    20,    20,     3,    14,    25,     3,    80,    40,
+      25,    -1,    43,    57,    23,     6,    -1,    75,    76,    28,
+      51,     1,    -1,    14,    -1,    83,    -1,     7,    -1,    -1,
+      39,    -1,    23,    24,    14,    15,    94,    -1,    96,    -1,
+      -1,    -1,    -1,   101,    53,   103,    55,    56,    39,    58,
+      59,    60,    61,    62,    -1,     6,    13,    14,    15,    16,
+      17,    -1,    53,    14,    -1,    -1,    -1,    58,    59,    60,
+      61,    62,    23,     4,     5,    -1,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    16,    17,    -1,    39,    -1,
+      -1,    -1,    -1,    -1,    -1,    26,    -1,    -1,    -1,    -1,
+      -1,    -1,    53,    -1,    -1,    -1,    -1,    58,    59,    60,
+      61,    62,     4,     5,    -1,     7,     8,     9,    10,    11,
+      12,    13,    14,    15,    16,    17,    -1,    -1,    -1,    -1,
+      -1,    -1,     4,     5,    26,     7,     8,     9,    10,    11,
+      12,    13,    14,    15,    16,    17,    -1,    -1,    -1,    -1,
+       4,     5,    24,     7,     8,     9,    10,    11,    12,    13,
+      14,    15,    16,    17,     5,    -1,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    16,    17,     7,     8,     9,
+      10,    11,    12,    13,    14,    15,    16,    17
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    45,    63,    58,    82,     0,    27,    64,     6,    14,
-      23,    28,    39,    53,    55,    56,    59,    60,    61,    66,
-      67,    68,    69,    72,    73,    74,    75,    76,    77,    78,
-      79,    82,    76,    78,    82,    23,    77,    77,    78,    82,
-      82,    82,    22,    81,    81,     7,     8,     9,    10,    11,
-      12,    13,    14,    15,    16,    17,     4,     5,     3,    23,
-      77,    24,    24,    24,    20,    70,    20,    70,    76,    76,
-      76,    76,    76,    76,    77,    77,    77,    77,    77,    78,
-      78,    75,    76,    78,    82,    24,    75,    76,    78,    80,
-      29,    31,    40,    43,    51,    65,     3,    65,     3,    71,
-      19,    24,    75,    76,    78,    25,    75,    76,    78,    75,
-      76,    78,    76,    26
+       0,    45,    64,    58,    85,     0,    27,    65,     6,    14,
+      23,    28,    39,    53,    55,    56,    59,    60,    61,    62,
+      67,    68,    69,    71,    76,    77,    78,    81,    82,    85,
+      81,    85,    81,    81,    85,    85,    22,    84,    84,     4,
+       5,     7,     8,     9,    10,    11,    12,    13,    14,    15,
+      16,    17,    23,    25,    79,    24,    70,    72,    81,    81,
+      81,    81,    81,    81,    81,    81,    81,    81,    81,    81,
+      81,    24,    81,    83,    81,     3,    25,    80,    20,    74,
+      20,    73,    74,    19,    24,    26,    81,    81,    29,    31,
+      40,    43,    51,    66,     3,    66,     3,    75,    81,    26,
+      81,    25,    81,     3,    81,    81,    26
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    62,    63,    64,    64,    64,    65,    65,    65,    65,
-      65,    66,    67,    67,    68,    68,    68,    69,    69,    70,
-      70,    71,    71,    71,    71,    72,    73,    73,    73,    73,
-      73,    74,    74,    74,    75,    75,    76,    77,    77,    77,
-      77,    77,    77,    77,    77,    77,    77,    78,    78,    78,
-      78,    78,    78,    78,    78,    78,    78,    78,    78,    78,
-      79,    79,    80,    80,    80,    80,    80,    80,    81,    81,
-      82
+       0,    63,    64,    65,    65,    65,    66,    66,    66,    66,
+      66,    67,    68,    68,    70,    69,    72,    71,    73,    73,
+      74,    74,    75,    75,    76,    77,    77,    77,    79,    78,
+      80,    80,    81,    81,    81,    81,    81,    81,    81,    81,
+      81,    81,    81,    81,    81,    81,    81,    81,    81,    81,
+      81,    81,    81,    81,    81,    81,    82,    82,    83,    83,
+      84,    84,    85
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     5,     2,     2,     0,     1,     1,     1,     1,
-       1,     2,     1,     1,     5,     5,     5,     4,     7,     2,
-       0,     2,     2,     2,     0,     2,     1,     1,     1,     1,
-       1,     3,     3,     3,     1,     1,     1,     3,     3,     3,
-       3,     3,     2,     3,     1,     1,     1,     3,     3,     3,
-       3,     3,     3,     3,     2,     3,     3,     3,     1,     1,
-       4,     3,     3,     3,     3,     1,     1,     1,     1,     0,
-       1
+       1,     2,     1,     1,     0,     6,     0,     4,     2,     5,
+       2,     0,     2,     0,     2,     1,     1,     1,     0,     3,
+       2,     5,     3,     3,     3,     3,     3,     2,     3,     3,
+       3,     3,     1,     1,     2,     3,     3,     1,     1,     3,
+       3,     1,     1,     4,     1,     3,     4,     3,     3,     1,
+       1,     0,     1
 };
 
 
@@ -1468,333 +1472,355 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 87 "xxx.y" /* yacc.c:1646  */
+#line 86 "xxx.y" /* yacc.c:1646  */
     {
 		// insert object's name into hash-table
 		insertIntoHashTable(ident);
-		// set the value of object's name
-		setValueInHashTable(ident, ItemType_OBJECT, NULL);
+		clear_stk(1);
 	}
-#line 1479 "y.tab.c" /* yacc.c:1646  */
+#line 1482 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 104 "xxx.y" /* yacc.c:1646  */
-    { (yyval.type_idx) = 0; }
-#line 1485 "y.tab.c" /* yacc.c:1646  */
+#line 102 "xxx.y" /* yacc.c:1646  */
+    { (yyval.dataType) = _char; }
+#line 1488 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 105 "xxx.y" /* yacc.c:1646  */
-    { (yyval.type_idx) = 1; }
-#line 1491 "y.tab.c" /* yacc.c:1646  */
+#line 103 "xxx.y" /* yacc.c:1646  */
+    { (yyval.dataType) = _string; }
+#line 1494 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 106 "xxx.y" /* yacc.c:1646  */
-    { (yyval.type_idx) = 2; }
-#line 1497 "y.tab.c" /* yacc.c:1646  */
+#line 104 "xxx.y" /* yacc.c:1646  */
+    { (yyval.dataType) = _int; }
+#line 1500 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 107 "xxx.y" /* yacc.c:1646  */
-    { (yyval.type_idx) = 3; }
-#line 1503 "y.tab.c" /* yacc.c:1646  */
+#line 105 "xxx.y" /* yacc.c:1646  */
+    { (yyval.dataType) = _boolean; }
+#line 1506 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 108 "xxx.y" /* yacc.c:1646  */
-    { (yyval.type_idx) = 4; }
-#line 1509 "y.tab.c" /* yacc.c:1646  */
+#line 106 "xxx.y" /* yacc.c:1646  */
+    { (yyval.dataType) = _float; }
+#line 1512 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 124 "xxx.y" /* yacc.c:1646  */
-    {
-		// first, insert this new constant into hash-table
-		if (insertIntoHashTable(ident) == -1)
-			yyerror("Symbol Error", "The constant in this scope has already been declared before.");
-		
-		/* explicitly-declared type checking (char: 0, string: 1, int: 2, boolean: 3, float: 4) */
-		else {
-			// type STRING declared or no type explicitly-declared
-			if ((yyvsp[-2].type_idx) == 1 || (yyvsp[-2].type_idx) == -1)
-				printf("[%s]\n", (yyvsp[0].sval)),
-				setValueInHashTable(ident, ItemType_VAL_S, (yyvsp[0].sval)),
-				printf("{%s}\n", (yyvsp[0].sval));
-			// CHAR, INT, BOOLEAN, or FLOAT declared -> type error
-			else
-				yyerror("Type Error", "A string value is assigned to a non-string type constant.");
-			
-			Item* item = lookupInHashTable(ident);
-			if (item != NULL)
-				printf("|%s|%d|%s|\n", item->name, item->itemType, item->value);
-		}
-	}
-#line 1535 "y.tab.c" /* yacc.c:1646  */
+#line 122 "xxx.y" /* yacc.c:1646  */
+    { storeAssigneeFromIdent(); }
+#line 1518 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 145 "xxx.y" /* yacc.c:1646  */
-    {
-		// first, insert this new constant into hash-table
-		if (insertIntoHashTable(ident) == -1)
-			yyerror("Symbol Error", "The constant in this scope has already been declared before.");
-		
-		/* explicitly-declared type checking (char: 0, string: 1, int: 2, boolean: 3, float: 4) */
-		else {
-			int integerized = (int) (yyvsp[0].dval);
-			double floatized = (double) ((yyvsp[0].dval) + 0.0);
-		
-			// type INT declared
-			if ((yyvsp[-2].type_idx) == 2) {
-				// the declared type and the assigned value are both INTs
-				if (isIntFlag)
-					setValueInHashTable(ident, ItemType_VAL_I, &integerized);
-				// the declared type is INT, but the assigned value is FLOAT
-				else {
-					yywarning("Type warning", "A FLOAT value is assigned to an INT type constant. The value loss is highly possible.");
-					setValueInHashTable(ident, ItemType_VAL_I, &integerized);
-				}
-			}
-			// type FLOAT declared
-			else if ((yyvsp[-2].type_idx) == 4) {
-				// the declared type is FLOAT, but the assigned value is INT
-				if (isIntFlag) {
-					yywarning("Type warning", "An INT value is assigned to a FLOAT type constant.");
-					setValueInHashTable(ident, ItemType_VAL_F, &floatized);
-				}
-				// the declared type and the assigned value are both FLOATs
-				else
-					setValueInHashTable(ident, ItemType_VAL_F, &floatized);
-			}
-			// no type explicitly-declared
-			else if ((yyvsp[-2].type_idx) == -1) {
-				if (isIntFlag)
-					setValueInHashTable(ident, ItemType_VAL_I, &integerized);
-				else
-					setValueInHashTable(ident, ItemType_VAL_F, &floatized);
-			}
-			// CHAR, STRING, or BOOLEAN declared -> type error
-			else
-				yyerror("Type Error", "A numeric value is assigned to a non-numeric type constant.");
-		}
-		
-		// reset the is-int-flag
-		isIntFlag = 1;
-	}
-#line 1587 "y.tab.c" /* yacc.c:1646  */
+#line 122 "xxx.y" /* yacc.c:1646  */
+    { insertAndInitId(1, (yyvsp[-2].dataType)); }
+#line 1524 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 192 "xxx.y" /* yacc.c:1646  */
-    {
-		// first, insert this new constant into hash-table
-		if (insertIntoHashTable(ident) == -1)
-			yyerror("Symbol Error", "The constant in this scope has already been declared before.");
-		
-		/* explicitly-declared type checking (char: 0, string: 1, int: 2, boolean: 3, float: 4) */
-		else {
-			// type BOOLEAN declared or no type explicitly-declared
-			if ((yyvsp[-2].type_idx) == 3 || (yyvsp[-2].type_idx) == -1)
-				setValueInHashTable(ident, ItemType_VAL_B, &((yyvsp[0].bval)));
-			// CHAR, STRING, INT, or FLOAT declared -> type error
-			else
-				yyerror("Type Error", "A boolean value is assigned to a non-boolean type constant.");
-		}
-	}
-#line 1607 "y.tab.c" /* yacc.c:1646  */
+#line 127 "xxx.y" /* yacc.c:1646  */
+    { storeAssigneeFromIdent(); }
+#line 1530 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 18:
+#line 132 "xxx.y" /* yacc.c:1646  */
+    { insertAndInitId(0, (yyvsp[-1].dataType)); }
+#line 1536 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 217 "xxx.y" /* yacc.c:1646  */
-    { (yyval.type_idx) = (yyvsp[0].type_idx); }
-#line 1613 "y.tab.c" /* yacc.c:1646  */
+#line 133 "xxx.y" /* yacc.c:1646  */
+    { insertArrayId((yyvsp[-3].dataType)); }
+#line 1542 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 218 "xxx.y" /* yacc.c:1646  */
-    { (yyval.type_idx) = -1; }
-#line 1619 "y.tab.c" /* yacc.c:1646  */
+#line 138 "xxx.y" /* yacc.c:1646  */
+    { (yyval.dataType) = (yyvsp[0].dataType); }
+#line 1548 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 21:
+#line 139 "xxx.y" /* yacc.c:1646  */
+    { (yyval.dataType) = _none; }
+#line 1554 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 28:
+#line 162 "xxx.y" /* yacc.c:1646  */
+    { storeAssigneeFromIdent(); }
+#line 1560 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 30:
+#line 167 "xxx.y" /* yacc.c:1646  */
+    { /* TODO */ }
+#line 1566 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 245 "xxx.y" /* yacc.c:1646  */
+#line 168 "xxx.y" /* yacc.c:1646  */
     { /* TODO */ }
-#line 1625 "y.tab.c" /* yacc.c:1646  */
+#line 1572 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 246 "xxx.y" /* yacc.c:1646  */
-    { /* TODO */ }
-#line 1631 "y.tab.c" /* yacc.c:1646  */
+#line 173 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "+", 1, 1); }
+#line 1578 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 247 "xxx.y" /* yacc.c:1646  */
-    { /* TODO */ }
-#line 1637 "y.tab.c" /* yacc.c:1646  */
+#line 174 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "-", 1, 1); }
+#line 1584 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 252 "xxx.y" /* yacc.c:1646  */
-    { strcpy((yyval.sval), (yyvsp[0].sval)); }
-#line 1643 "y.tab.c" /* yacc.c:1646  */
+#line 175 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "*", 1, 1); }
+#line 1590 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 35:
+#line 176 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "/", 1, 1); }
+#line 1596 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 36:
+#line 177 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "%", 1, 0); }
+#line 1602 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 261 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (yyvsp[-2].dval) + (yyvsp[0].dval); }
-#line 1649 "y.tab.c" /* yacc.c:1646  */
+#line 178 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "UMINUS", 0, 1); }
+#line 1608 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 262 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (yyvsp[-2].dval) - (yyvsp[0].dval); }
-#line 1655 "y.tab.c" /* yacc.c:1646  */
+#line 179 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "<", 1, 1); }
+#line 1614 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 263 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (yyvsp[-2].dval) * (yyvsp[0].dval); }
-#line 1661 "y.tab.c" /* yacc.c:1646  */
+#line 180 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "<=", 1, 1); }
+#line 1620 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 264 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (yyvsp[-2].dval) / (yyvsp[0].dval); }
-#line 1667 "y.tab.c" /* yacc.c:1646  */
+#line 181 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), ">=", 1, 1); }
+#line 1626 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 265 "xxx.y" /* yacc.c:1646  */
-    {
-		if (isIntFlag == 0) {
-			yywarning("Type Warning", "Float values in MOD operation: possible lossy conversion from FLOAT to INT.");
-			(yyval.dval) = (double) ((int) (yyvsp[-2].dval) % (int) (yyvsp[0].dval));
-		}
-		else
-			(yyval.dval) = (int) (yyvsp[-2].dval) % (int) (yyvsp[0].dval);
-	}
-#line 1680 "y.tab.c" /* yacc.c:1646  */
+#line 182 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), ">", 1, 1); }
+#line 1632 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 273 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (-(yyvsp[0].dval)); }
-#line 1686 "y.tab.c" /* yacc.c:1646  */
+#line 183 "xxx.y" /* yacc.c:1646  */
+    { push_stk((yyvsp[0].tnode)); }
+#line 1638 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 274 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (yyvsp[-1].dval); }
-#line 1692 "y.tab.c" /* yacc.c:1646  */
+#line 184 "xxx.y" /* yacc.c:1646  */
+    { push_stk((yyvsp[0].tnode)); }
+#line 1644 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 275 "xxx.y" /* yacc.c:1646  */
-    { printf("|%s|\n", ident);  }
-#line 1698 "y.tab.c" /* yacc.c:1646  */
+#line 186 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "!", 0, 0); }
+#line 1650 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 276 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (yyvsp[0].dval); isIntFlag = 0; }
-#line 1704 "y.tab.c" /* yacc.c:1646  */
+#line 187 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "||", 1, 0); }
+#line 1656 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 277 "xxx.y" /* yacc.c:1646  */
-    { (yyval.dval) = (yyvsp[0].ival); }
-#line 1710 "y.tab.c" /* yacc.c:1646  */
+#line 188 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "&&", 1, 0); }
+#line 1662 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 282 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].dval) < (yyvsp[0].dval)); }
-#line 1716 "y.tab.c" /* yacc.c:1646  */
+#line 189 "xxx.y" /* yacc.c:1646  */
+    { (yyval.tnode)->_type = _boolean; (yyval.tnode)->_b = 1; push_stk((yyval.tnode)); }
+#line 1668 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 283 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].dval) <= (yyvsp[0].dval)); }
-#line 1722 "y.tab.c" /* yacc.c:1646  */
+#line 190 "xxx.y" /* yacc.c:1646  */
+    { (yyval.tnode)->_type = _boolean; (yyval.tnode)->_b = 0; push_stk((yyval.tnode)); }
+#line 1674 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 284 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].dval) == (yyvsp[0].dval)); }
-#line 1728 "y.tab.c" /* yacc.c:1646  */
+#line 192 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "==", 1, 0); }
+#line 1680 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 285 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].dval) >= (yyvsp[0].dval)); }
-#line 1734 "y.tab.c" /* yacc.c:1646  */
+#line 193 "xxx.y" /* yacc.c:1646  */
+    { doOperation((yyval.tnode), "!=", 1, 0); }
+#line 1686 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 286 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].dval) > (yyvsp[0].dval)); }
-#line 1740 "y.tab.c" /* yacc.c:1646  */
+#line 195 "xxx.y" /* yacc.c:1646  */
+    { push_stk((yyvsp[0].tnode)); }
+#line 1692 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 287 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].dval) != (yyvsp[0].dval)); }
-#line 1746 "y.tab.c" /* yacc.c:1646  */
+#line 197 "xxx.y" /* yacc.c:1646  */
+    { push_stk((yyvsp[0].tnode)); }
+#line 1698 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 288 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-1].bval)); }
-#line 1752 "y.tab.c" /* yacc.c:1646  */
+#line 199 "xxx.y" /* yacc.c:1646  */
+    {
+		// search for the identifier
+		Item* item = lookupInHashTable(ident);
+		
+		// no identifier found -> symbol error
+		if (item == NULL)
+			yywarning("Symbol Error. No such array identifier found.");
+		
+		// normal case
+		else {
+			// this item is a single value, i.e., a variable or a constant -> symbol error
+			if (item->itemType == _variable || item->itemType == _constant)
+				yywarning("This identifier is NOT an array.");
+			
+			// is an array
+			else if (item->itemType == _array) {
+				// no value assigned -> symbol error
+				if (item->a_value == NULL)
+					yywarning("Symbol Error. The array has NOT been initialized.");
+				// has value assigned -> create a new Tnode for the indexed data and push it into the stack
+				else {
+					// pop a Tnode for attaining the index of the array
+					Tnode* ndForIdx = pop_stk();
+					int idx = 0;
+					
+					// the index expression yields NON-integer value -> type error
+					if (ndForIdx->_type != _int)
+						yywarning("Type Error. The index of an array must be an INTEGER.");
+					
+					// the index expression is exactly an integer value
+					else {
+						// get the index
+						idx = ndForIdx->_i;
+						
+						// if the index is out of range -> index error
+						if (idx < 0 || idx >= item->a_value->asize)
+							yywarning("Index Error. The index of the array is out of range.");
+						
+						// the index is NOT out of range
+						else {
+							// if the position of this array has NOT been assigned by any value -> value error
+							if (item->a_value->hasAssigned[idx] == 0)
+								yywarning("Value Error. The position of the array has NOT been assigned by any value.");
+							
+							// create a new Tnode for attaining the indexed data
+							else {
+								Tnode* newNd = (Tnode*)malloc(sizeof(Tnode));
+								newNd->_s = NULL;
+								newNd->_type = item->a_value->_atype;
+								switch (newNd->_type) {
+									case _char: newNd->_c = item->a_value->_ac[idx]; break;
+									case _string:
+										newNd->_s = (char*)malloc(sizeof(char*) * (strlen(item->a_value->_as[idx]) + 1));
+										strcpy(newNd->_s, item->a_value->_as[idx]);
+										break;
+									case _int: newNd->_i = item->a_value->_ai[idx]; break;
+									case _boolean: newNd->_b = item->a_value->_ab[idx]; break;
+									case _float: newNd->_f = item->a_value->_af[idx]; break;
+								}
+								push_stk(newNd);
+							}
+						}
+					}
+				}
+			}
+			
+			// not variable/constant nor array -> symbol error
+			else
+				yywarning("This identifier is NOT a variable/constant nor an array.");
+		}
+	}
+#line 1774 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 289 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = (!((yyvsp[0].bval))); }
-#line 1758 "y.tab.c" /* yacc.c:1646  */
+#line 270 "xxx.y" /* yacc.c:1646  */
+    {
+		// search for the identifier
+		Item* item = lookupInHashTable(ident);
+		
+		// no identifier found -> symbol error
+		if (item == NULL)
+			yywarning("Symbol Error. No such variable/constant found.");
+		
+		// normal case
+		else {
+			// this item is a single value, i.e., a variable or a constant
+			if (item->itemType == _variable || item->itemType == _constant) {
+				// no value assigned -> symbol error
+				if (item->value == NULL)
+					yywarning("Symbol Error. The variable/constant has NOT been initialized.");
+				// has value assigned -> push the Tnode into the stack
+				else
+					push_stk(item->value);
+			}
+			
+			// is an array -> symbol error
+			else if (item->itemType == _array)
+				yywarning("Symbol Error. You cannot use array without explicitly telling the index.");
+			
+			// not variable/constant nor array -> symbol error
+			else
+				yywarning("This identifier is NOT a variable/constant nor an array.");
+		}
+	}
+#line 1808 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 56:
-#line 291 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].bval) || (yyvsp[0].bval)); }
-#line 1764 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 57:
-#line 292 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = ((yyvsp[-2].bval) && (yyvsp[0].bval)); }
-#line 1770 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 58:
-#line 293 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = 1; }
-#line 1776 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 59:
-#line 294 "xxx.y" /* yacc.c:1646  */
-    { (yyval.bval) = 0; }
-#line 1782 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 70:
-#line 321 "xxx.y" /* yacc.c:1646  */
+  case 62:
+#line 322 "xxx.y" /* yacc.c:1646  */
     {
 		if (ident != NULL)
 			free(ident);
-		ident = (char*)malloc(sizeof(char) * (strlen((yyvsp[0].sval)) + 1));
+		ident = (char*)malloc(sizeof(char) * (strlen((yyvsp[0].tnode)->_s) + 1));
 		ident[0] = 0;
-		strcpy(ident, (yyvsp[0].sval));
+		strcpy(ident, (yyvsp[0].tnode)->_s);
 	}
-#line 1794 "y.tab.c" /* yacc.c:1646  */
+#line 1820 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1798 "y.tab.c" /* yacc.c:1646  */
+#line 1824 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2022,18 +2048,19 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 330 "xxx.y" /* yacc.c:1906  */
+#line 331 "xxx.y" /* yacc.c:1906  */
 
 
 // error happens -> tell the user and exit
-int yyerror(char* errType, char* msg) {
-	fprintf(stderr, " >>> |%s|\n     %s\n", errType, msg);
-	return 0;
-}
+/*void yyerror(const char* msg) {
+	extern int yylineno;
+	fprintf(stderr, "line %d: %s\n", yylineno, msg);
+}*/
 
 // warning happens -> just tell the user
-int yywarning(char* warningType, char* msg) {
-	fprintf(stderr, " >>> |%s|\n     %s\n", warningType, msg);
+int yywarning(const char* msg) {
+	extern int yylineno;
+	fprintf(stderr, "line %d: %s\n", yylineno, msg);
 	return 0;
 }
 
@@ -2071,7 +2098,7 @@ void appendHashTable() {
 int insertIntoHashTable(const char* name) {
 	// first, check if the htail (the latest hash-table) is NULL or not
 	if (htail == NULL)
-		yyerror("Syntax error", "You cannot assign variables here.");
+		yywarning("Syntax error. You cannot assign variables here.");
 	
 	// insert into the latest hash-table
 	return insert(htail->table, name);
@@ -2082,32 +2109,414 @@ Item* lookupInHashTable(const char* name) {
 	return lookup(htail->table, name);
 }
 
-// set the value of an identifier in the latest hash-table
-void setValueInHashTable(const char* name, ItemType itemType, void* value) {
-	// first, check if the htail (the latest hash-table) is NULL or not
-	if (htail == NULL)
-		yyerror("Syntax error", "You cannot try to get identifiers here.");
+// in a certain unary operation, check if the type of the operand are compatible with this operation or not
+int doOperation(Tnode* res, char* operationName, int isBinaryOperation, int isNumericOperation) {
+	// first of all, nullify the string field of the result Tnode
+	res->_s = NULL;
 	
-	// search for the identifier in the latest hash-table
-	Item* item = lookup(htail->table, name);
+	// get an operand from the stack
+	Tnode* rhs = pop_stk();
+	Tnode* lhs = NULL;
 	
-	// no such identifier
-	if (item == NULL)
-		yyerror("Symbol Error", "No such identifier.");
+	// if it's a binary operation, get another operand from the stack
+	if (isBinaryOperation)
+		lhs = pop_stk();
 	
-	// identifier found, set its item-type and value
-	else {
-		// set the item-type
-		item->itemType = itemType;
-		
-		// the item-type is STRING
-		if (value != NULL || itemType == ItemType_VAL_S || itemType == ItemType_VAR_S) {
-			char* s = (char*)value;
-			item->value = (char*)malloc(sizeof(char) * (strlen(s) + 1));
-			strcpy(item->value, s);
-		}
-		// the rest cases
-		else
-			item->value = value;
+	// if the operand is NOT enough in the stack
+	if (rhs == NULL || (isBinaryOperation && lhs == NULL)) {
+		char msg[20002];
+		sprintf(msg, "Operation error. The number of operand(s) in the operation \"%s\" is NOT enough.", operationName);
+		yywarning(msg);
+		return 0;
 	}
+	
+	// the flag to check if the rhs is compatible or not
+	int compatible = 0;
+	
+	// the true data type
+	DataType trueDataType = _int;
+	DataType resDataType = _int;
+	
+	// for BINARY numeric operations, check the loosen compatibility, i.e., ok for an INT and a FLOAT but a warning still is a must
+	if (isBinaryOperation && isNumericOperation &&
+		(lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float) &&
+		lhs->_type != rhs->_type) {
+		char msg[20002];
+		sprintf(msg, "Type warning. The operands of the numeric operation \"%s\" is NOT the same type.", operationName);
+		yywarning(msg);
+	}
+	
+	// BINARY numeric: ADD
+	if (!strcmp(operationName, "+")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		trueDataType = ((lhs->_type == _int && rhs->_type == _int) ? _int : _float);
+		if (trueDataType == _int)
+			res->_i = lhs->_i + rhs->_i;
+		else
+			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) + (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
+		res->_type = trueDataType;
+	}
+	// BINARY numeric: MINUS
+	else if (!strcmp(operationName, "-")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		trueDataType = ((lhs->_type == _int && rhs->_type == _int) ? _int : _float);
+		if (trueDataType == _int)
+			res->_i = lhs->_i - rhs->_i;
+		else
+			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) - (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
+		res->_type = trueDataType;
+	}
+	// BINARY numeric: MULTIPLY
+	else if (!strcmp(operationName, "*")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		trueDataType = ((lhs->_type == _int && rhs->_type == _int) ? _int : _float);
+		if (trueDataType == _int)
+			res->_i = lhs->_i * rhs->_i;
+		else
+			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) * (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
+		res->_type = trueDataType;
+	}
+	// BINARY numeric: DIVIDE
+	else if (!strcmp(operationName, "/")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		double rhsValue = (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
+		if (rhsValue == 0) {
+			if (compatible)
+				yywarning("Divide by zero in a DIVISION operation.");
+			rhsValue += 1E-10;
+		}
+		if (lhs->_type == _int && rhs->_type == _int) {
+			trueDataType = _int;
+			res->_i = (int) (lhs->_i / rhsValue);
+			res->_type = _int;
+		}
+		else {
+			trueDataType = _float;
+			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) / rhsValue;
+			res->_type = _float;
+		}
+	}
+	// BINARY int: MOD
+	else if (!strcmp(operationName, "%")) {
+		compatible = (lhs->_type == _int && rhs->_type == _int);
+		trueDataType = _int;
+		int lhsValue = (lhs->_type == _int ? lhs->_i : ((int) lhs->_f));
+		int rhsValue = (rhs->_type == _int ? rhs->_i : ((int) rhs->_f));
+		if (compatible && rhsValue == 0)
+			yywarning("Divide by zero in a MOD operation.");
+		if (rhsValue)
+			res->_i = lhsValue % rhsValue;
+		res->_type = _int;
+	}
+	// BINARY numeric: LT
+	else if (!strcmp(operationName, "<")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		trueDataType = _numeric;
+		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) < (rhs->_type == _int ? rhs->_i : rhs->_f));
+		res->_type = _boolean;
+	}
+	// BINARY numeric: LE
+	else if (!strcmp(operationName, "<=")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		trueDataType = _numeric;
+		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) <= (rhs->_type == _int ? rhs->_i : rhs->_f));
+		res->_type = _boolean;
+	}
+	// BINARY numeric: GE
+	else if (!strcmp(operationName, ">=")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		trueDataType = _numeric;
+		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) >= (rhs->_type == _int ? rhs->_i : rhs->_f));
+		res->_type = _boolean;
+	}
+	// BINARY numeric: GT
+	else if (!strcmp(operationName, ">")) {
+		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
+		trueDataType = _numeric;
+		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) > (rhs->_type == _int ? rhs->_i : rhs->_f));
+		res->_type = _boolean;
+	}
+	// BINARY general: EQ or NE ("==" or "!=")
+	else if (!strcmp(operationName, "==") || !strcmp(operationName, "!=")) {
+		compatible = (lhs->_type == rhs->_type);
+		switch (lhs->_type) {
+			// BOOLEAN
+			case _boolean:
+				if (compatible == 0)
+					res->_b = 0;
+				else
+					res->_b = (operationName[0] == '=' ? (lhs->_b == rhs->_b) : (lhs->_b != rhs->_b));
+				break;
+			
+			// CHAR
+			case _char:
+				if (compatible == 0)
+					res->_b = 0;
+				else
+					res->_b = (operationName[0] == '=' ? (lhs->_c == rhs->_c) : (lhs->_c != rhs->_c));
+				break;
+			
+			// STRING
+			case _string:
+				if (compatible == 0 || lhs->_s == NULL || rhs->_s == NULL)
+					res->_b = 0;
+				else
+					res->_b = (operationName[0] == '=' ? (!strcmp(lhs->_s, rhs->_s)) : (strcmp(lhs->_s, rhs->_s) != 0));
+				break;
+			
+			// numeric, i.e., INT or FLOAT
+			default:
+				if (lhs->_type == _int) {
+					// INT and INT
+					if (rhs->_type == _int)
+						res->_b = (operationName[0] == '=' ? (lhs->_i == rhs->_i) : (lhs->_i != rhs->_i));
+					// INT and FLOAT
+					else if (rhs->_type == _float)
+						res->_b = (operationName[0] == '=' ? (lhs->_i == rhs->_f) : (lhs->_i != rhs->_f));
+					// INT and non-numeric
+					else
+						res->_b = 0;
+				}
+				else {
+					// FLOAT and INT
+					if (rhs->_type == _int)
+						res->_b = (operationName[0] == '=' ? (lhs->_f == rhs->_i) : (lhs->_f != rhs->_i));
+					// FLOAT and FLOAT
+					else if (rhs->_type == _float)
+						res->_b = (operationName[0] == '=' ? (lhs->_f == rhs->_f) : (lhs->_f != rhs->_f));
+					// FLOAT and non-numeric
+					else
+						res->_b = 0;
+				}
+		}
+		res->_type = _boolean;
+	}
+	// UNARY numeric: UMINUS
+	else if (!strcmp(operationName, "UMINUS")) {
+		compatible = (rhs->_type == _int || rhs->_type == _float);
+		trueDataType = (rhs->_type == _int ? _int : _float);
+		if (rhs->_type == _int)
+			res->_i = (-(rhs->_i));
+		else
+			res->_f = (-(rhs->_f));
+		res->_type = trueDataType;
+	}
+	// UNARY boolean: NOT
+	else if (!strcmp(operationName, "!")) {
+		compatible = (rhs->_type == _boolean);
+		trueDataType = _boolean;
+		res->_b = (!(rhs->_b));
+		res->_type = _boolean;
+	}
+	// BINARY boolean: AND
+	else if (!strcmp(operationName, "&&")) {
+		compatible = (lhs->_type == _boolean && rhs->_type == _boolean);
+		trueDataType = _boolean;
+		res->_b = (lhs->_b && rhs->_b);
+		res->_type = _boolean;
+	}
+	// BINARY boolean: OR
+	else if (!strcmp(operationName, "||")) {
+		compatible = (lhs->_type == _boolean && rhs->_type == _boolean);
+		trueDataType = _boolean;
+		res->_b = (lhs->_b || rhs->_b);
+		res->_type = _boolean;
+	}
+	
+	// push the result back to the stack
+	push_stk(res);
+	
+	// loose the compatibility if it's a numeric operation and its result is a numeric value as well
+	if (isNumericOperation && (trueDataType == _int || trueDataType == _float))
+		trueDataType = _numeric;
+	
+	// if it's NOT compatible, build the error message and print it out
+	if (compatible == 0) {
+		char msg[20002];
+		// the operation is EQ or NE
+		if (!strcmp(operationName, "==") || !strcmp(operationName, "!="))
+			sprintf(msg, "Type warning. The both sides of \"%s\" operation should be the SAME type or the result could be unexpected.",
+				operationName);
+		// not EQ nor NE
+		else {
+			// build the error message for this BINARY operation
+			if (isBinaryOperation)
+				sprintf(msg, "Type error. The BINARY operation \"%s\" is %s \'%s\' operation, but the operands are \'%s\' and \'%s\'.",
+					operationName,
+					(getLiteralDataTypeName(trueDataType)[0] == 'i' ? "an" : "a"),
+					getLiteralDataTypeName(trueDataType),
+					getLiteralDataTypeName(lhs->_type),
+					getLiteralDataTypeName(rhs->_type));
+			// the case of a UNARY operation
+			else
+				sprintf(msg, "Type error. The UNARY operation \"%s\" is %s \'%s\' operation, but the operand is \'%s\'.",
+					operationName,
+					(getLiteralDataTypeName(trueDataType)[0] == 'i' ? "an" : "a"),
+					getLiteralDataTypeName(trueDataType),
+					getLiteralDataTypeName(rhs->_type));
+		}
+		// print out the warning
+		yywarning(msg);
+	}
+	
+	// return that if the rhs is compatible or not
+	return compatible;
+}
+
+// store the assignee (the identifier which is about to be assigned)
+void storeAssigneeFromIdent() {
+	// release the memory allocated before
+	if (assignee != NULL)
+		free(assignee);
+	
+	// nullify the assignee
+	assignee = NULL;
+	
+	// re-assign the assignee from the temporally stored ident
+	if (ident != NULL) {
+		assignee = (char*)malloc(sizeof(char) * (strlen(ident) + 1));
+		strcpy(assignee, ident);
+	}
+}
+
+// insert a new variable/constant and do the initialization with the type checking
+int insertAndInitId(int isConstant, DataType declaredType) {
+	// get the assigned value (an expression) if any
+	Tnode* rhs = pop_stk();
+
+	// search for the identifier by the temporally stored assignee
+	int insertionRes = insertIntoHashTable(assignee);
+	
+	// if this assignee has already been declared in the same (current) scope
+	if (insertionRes == -1) {
+		char msg[2002];
+		sprintf(msg, "Symbol Error. The %s \'%s\' has already been declared in the same scope.",
+			(isConstant ? "constant" : "variable"), assignee);
+		yywarning(msg);
+		return 0;
+	}
+	
+	// get the item just inserted
+	Item* item = lookupInHashTable(assignee);
+	
+	// set the boolean flag that shows this assignee is a constant or a variable
+	if (isConstant)
+		item->itemType = _constant;
+	else
+		item->itemType = _variable;
+	
+	// allocate a new memory space of a Tnode
+	item->value = (Tnode*)malloc(sizeof(Tnode));
+	item->value->_s = NULL;
+	
+	// set the type of this item
+	item->value->_type = (declaredType == _none ? (rhs != NULL ? rhs->_type : _none) : declaredType);
+	
+	// if there's no assigned value, return directly
+	if (rhs == NULL)
+		return 1;
+	
+	// if the declared data type is NOT matched with the one of the assigned value -> type error
+	if (declaredType != _none && declaredType != rhs->_type) {
+		char msg[2002];
+		sprintf(msg, "Type Error. The %s \'%s\' is declared as the type of \'%s\', but the assigned value is the type of \'%s\'.",
+			(isConstant ? "constant" : "variable"),
+			assignee,
+			getLiteralDataTypeName(declaredType),
+			getLiteralDataTypeName(rhs->_type));
+		yywarning(msg);
+		return 0;
+	}
+	
+	// set its value according to the data type
+	switch(item->value->_type) {
+		case _char: item->value->_c = rhs->_c; break;
+		case _string:
+			item->value->_s = (char*)malloc(sizeof(char) * (strlen(rhs->_s) + 1));
+			strcpy(item->value->_s, rhs->_s);
+			break;
+		case _int: item->value->_i = rhs->_i; break;
+		case _boolean: item->value->_b = rhs->_b; break;
+		case _float: item->value->_f = rhs->_f; break;
+	}
+	
+	// return with the flag of success
+	return 1;
+}
+
+// insert a new array of some data type
+int insertArrayId(DataType declaredType) {
+	// search for the identifier by the temporally stored assignee
+	int insertionRes = insertIntoHashTable(assignee);
+	
+	// if this assignee has already been declared in the same (current) scope
+	if (insertionRes == -1) {
+		char msg[2002];
+		sprintf(msg, "Symbol Error. The identifier \'%s\' has already been declared in the same scope.", assignee);
+		yywarning(msg);
+		return 0;
+	}
+	
+	// get the item just inserted
+	Item* item = lookupInHashTable(assignee);
+	
+	// set the item-type
+	item->itemType = _array;
+	
+	// get the Tnode for determining the size of this array
+	Tnode* ndForSize = pop_stk();
+	
+	// if there's no declared size -> syntax error
+	if (ndForSize == NULL) {
+		yywarning("Syntax Error. The size of an array must be explicitly declared.");
+		return 0;
+	}
+	
+	// the size of this array
+	int size = 1;
+	
+	// if the type of the Tnode-for-size is NOT an INT -> type error
+	if (ndForSize->_type != _int) {
+		yywarning("Type Error. The size of an array must be an INTEGER.");
+		return 0;
+	}
+	
+	// determine the size of this array
+	else
+		size = ndForSize->_i;
+	
+	// build a new Anode
+	Anode* anode = (Anode*)malloc(sizeof(Anode));
+	anode->_ac = NULL;
+	anode->_as = NULL;
+	anode->_ai = NULL;
+	anode->_ab = NULL;
+	anode->_af = NULL;
+	
+	// set the size into the new Anode
+	anode->asize = size;
+	
+	// set the type of the new Anode
+	anode->_atype = declaredType;
+	
+	// allocate the memory for the array according to the declared type
+	switch (declaredType) {
+		case _char: anode->_ac = (char*)malloc(sizeof(char) * size); break;
+		case _string: anode->_as = (char**)malloc(sizeof(char*) * size); break;
+		case _int: anode->_ai = (int*)malloc(sizeof(int) * size); break;
+		case _boolean: anode->_ab = (int*)malloc(sizeof(int) * size); break;
+		case _float: anode->_af = (double*)malloc(sizeof(double) * size); break;
+	}
+	
+	// set the has-assigned values to all false's
+	anode->hasAssigned = (int*)malloc(sizeof(int) * size);
+	int k;
+	for (k = 0; k < size; ++k)
+		anode->hasAssigned[k] = 0;
+	
+	// set the Anode as the a_value of the item
+	item->a_value = anode;
+	
+	// return successfully
+	return 1;
 }

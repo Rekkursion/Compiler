@@ -1,50 +1,36 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifndef _TNODE
+#include "tnode.h"
+#define _TNODE
+#endif
+
+#ifndef _ANODE
+#include "anode.h"
+#define _ANODE
+#endif
+
 // the size of the hash-table
 #define HT_SIZE 1024
 
 /* ============================================================ */
 
-// the item-types
 typedef enum item_type {
-	// an object
-	ItemType_OBJECT = 0,
-	
-	// a function definition
-	ItemType_DEF = 1,
-	
-	// a constant of a character
-	ItemType_VAL_C = 2,
-	// a variable of a character
-	ItemType_VAR_C = 3,
-	
-	// a constant of a string
-	ItemType_VAL_S = 4,
-	// a variable of a string
-	ItemType_VAR_S = 5,
-	
-	// a constant of an integer
-	ItemType_VAL_I = 6,
-	// a variable of an integer
-	ItemType_VAR_I = 7,
-	
-	// a constant of a boolean
-	ItemType_VAL_B = 8,
-	// a variable of a boolean
-	ItemType_VAR_B = 9,
-	
-	// a constant of a float
-	ItemType_VAL_F = 10,
-	// a variable of a float
-	ItemType_VAR_F = 11
+	_variable = 0,
+	_constant = 1,
+	_array = 2,
+	_none_item = 65536
 }ItemType;
 
-// an item (data) of a node
+// an item (data) of a hash-table node
 typedef struct item {
-	char* name;
 	ItemType itemType;
-	void* value;
+	char* name;
+	Tnode* value;
+	
+	// 'a' in the field name stands for "array"
+	Anode* a_value;
 }Item;
 
 // an lnode is a node of a list
@@ -78,42 +64,6 @@ int hash(const char* str) {
 	
 	// return the summed up value
 	return ret;
-}
-
-// check if an identifier is a constant or not
-int isConstant(Item* item) {
-	if (item == NULL)
-		return 0;
-	return item->itemType == 2 ||
-		item->itemType == 4 ||
-		item->itemType == 6 ||
-		item->itemType == 8 ||
-		item->itemType == 10;
-}
-
-// check if an identifier is a variable or not
-int isVariable(Item* item) {
-	if (item == NULL)
-		return 0;
-	return item->itemType == 3 ||
-		item->itemType == 5 ||
-		item->itemType == 7 ||
-		item->itemType == 9 ||
-		item->itemType == 11;
-}
-
-// check if an identifier is an integer constant/variable or not
-int isInteger(Item* item) {
-	if (item == NULL)
-		return 0;
-	return item->itemType == 6 || item->itemType == 7;
-}
-
-// check if an identifier is a float constant/variable or not
-int isFloat(Item* item) {
-	if (item == NULL)
-		return 0;
-	return item->itemType == 10 || item->itemType == 11;
 }
 
 /* ============================================================ */
@@ -164,7 +114,9 @@ int insert(Slot* table, const char* name) {
 	int nameLen = strlen(name);
 	Item* data = (Item*)malloc(sizeof(Item));
 	data->name = (char*)malloc(sizeof(char) * (nameLen + 1));
+	data->itemType = _none_item;
 	data->value = NULL;
+	data->a_value = NULL;
 	strcpy(data->name, name);
 	
 	// build a list node
@@ -203,8 +155,16 @@ int dump(Slot* table) {
 		// visit all nodes of each entry
 		Lnode* ptr = table[k].lhead;
 		while (ptr) {
-			// print the identifier out
-			printf("%s\n", ptr->data->name);
+			/* print the identifier out */
+			printf("|%d|%s|", ptr->data->itemType, ptr->data->name);
+			if (ptr->data->value)
+				printf("dtype:%d|\n", ptr->data->value->_type);
+			else {
+				if (ptr->data->a_value)
+					printf("size_of_arr:%d|\n", ptr->data->a_value->asize);
+				else
+					printf("no assigned value|\n");
+			}
 			
 			// count the number of identifiers
 			++counter;

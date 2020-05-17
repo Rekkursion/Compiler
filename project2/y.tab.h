@@ -45,8 +45,8 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    AND = 258,
-    OR = 259,
+    OR = 258,
+    AND = 259,
     NOT = 260,
     LT = 261,
     LE = 262,
@@ -98,12 +98,13 @@ extern int yydebug;
     ID = 308,
     LITERAL_INTEGER = 309,
     LITERAL_FLOAT = 310,
-    LITERAL_STRING = 311
+    LITERAL_CHAR = 311,
+    LITERAL_STRING = 312
   };
 #endif
 /* Tokens.  */
-#define AND 258
-#define OR 259
+#define OR 258
+#define AND 259
 #define NOT 260
 #define LT 261
 #define LE 262
@@ -155,31 +156,20 @@ extern int yydebug;
 #define ID 308
 #define LITERAL_INTEGER 309
 #define LITERAL_FLOAT 310
-#define LITERAL_STRING 311
+#define LITERAL_CHAR 311
+#define LITERAL_STRING 312
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 40 "xxx.y" /* yacc.c:1909  */
+#line 52 "xxx.y" /* yacc.c:1909  */
 
-	// the string value
-	char* sval;
+	Tnode* tnode;
+	DataType dataType;
 
-	// the index of data type
-	int type_idx;
-	
-	// the integer value
-	int ival;
-	
-	// the boolean value
-	int bval;
-	
-	// the double value
-	double dval;
-
-#line 183 "y.tab.h" /* yacc.c:1909  */
+#line 173 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

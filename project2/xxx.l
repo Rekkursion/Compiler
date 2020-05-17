@@ -8,6 +8,7 @@
 	
 	#include <stdio.h>
 	#include <string.h>
+	#include "tnode.h"
 	#include "y.tab.h"
 	
 	// buffer the attained text of the input content
@@ -20,33 +21,72 @@
 	}
 	
 	// get a literal string token
-	#define tokenString(t, s) { \
-		if (yylval.sval != NULL) \
-			free(yylval.sval); \
-		yylval.sval = (char*)malloc(sizeof(char) * (strlen(s) + 1)); \
-		strcpy(yylval.sval, s); \
-		printf("u|%s|%s|u\n", s, yylval.sval); \
-		return t; \
+	#define tokenString(s) { \
+		if (yylval.tnode != NULL) { \
+			if (yylval.tnode->_s != NULL) \
+				free(yylval.tnode->_s); \
+			free(yylval.tnode); \
+		} \
+		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
+		yylval.tnode->_s = (char*)malloc(sizeof(char) * (strlen(s) + 1)); \
+		strcpy(yylval.tnode->_s, s); \
+		yylval.tnode->_type = _string; \
+		return LITERAL_STRING; \
+	}
+	
+	// get a literal character token
+	#define tokenChar(c) { \
+		if (yylval.tnode != NULL) { \
+			if (yylval.tnode->_s != NULL) \
+				free(yylval.tnode->_s); \
+			free(yylval.tnode); \
+		} \
+		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
+		yylval.tnode->_s = NULL; \
+		yylval.tnode->_c = c; \
+		yylval.tnode->_type = _char; \
+		return LITERAL_CHAR; \
 	}
 	
 	// get an integer token
 	#define tokenInteger(i) { \
-		sscanf(yytext, "%d", &yylval); \
+		if (yylval.tnode != NULL) { \
+			if (yylval.tnode->_s != NULL) \
+				free(yylval.tnode->_s); \
+			free(yylval.tnode); \
+		} \
+		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
+		sscanf(yytext, "%d", &yylval.tnode->_i); \
+		yylval.tnode->_s = NULL; \
+		yylval.tnode->_type = _int; \
 		return LITERAL_INTEGER; \
 	}
 	
 	// get a real number token
 	#define tokenReal(r) { \
-		sscanf(yytext, "%lf", &yylval); \
+		if (yylval.tnode != NULL) { \
+			if (yylval.tnode->_s != NULL) \
+				free(yylval.tnode->_s); \
+			free(yylval.tnode); \
+		} \
+		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
+		sscanf(yytext, "%lf", &yylval.tnode->_f); \
+		yylval.tnode->_s = NULL; \
+		yylval.tnode->_type = _float; \
 		return LITERAL_FLOAT; \
 	}
 	
 	// get an identifier token
 	#define tokenId(id) { \
-		if (yylval.sval != NULL) \
-			free(yylval.sval); \
-		yylval.sval = (char*)malloc(sizeof(char) * (strlen(yytext) + 1)); \
-		strcpy(yylval.sval, yytext); \
+		if (yylval.tnode != NULL) { \
+			if (yylval.tnode->_s != NULL) \
+				free(yylval.tnode->_s); \
+			free(yylval.tnode); \
+		} \
+		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
+		yylval.tnode->_s = (char*)malloc(sizeof(char) * (strlen(yytext) + 1)); \
+		strcpy(yylval.tnode->_s, yytext); \
+		yylval.tnode->_type = _id; \
 		return ID; \
 	}
 	
@@ -68,6 +108,8 @@
 	// the single-line buffer for storing the input content
 	char sgLnBuf[200002] = {0};
 %}
+
+%option yylineno
 
 	/* state declaration: the comment state */
 %x COMMENT
@@ -274,6 +316,26 @@ while { bufText(yytext); token(WHILE); }
 	tokenReal(yytext);
 }
 
+	/* TOKEN: characters */
+(\'[^\n\t]\')|(\'\'\'\')|(\'\"\"\') {
+	// buffer the text
+	bufText(yytext);
+	
+	// special case 1: '''', which means a single-quote sign '
+	if (!strcmp("\'\'\'\'", yytext)) {
+		tokenChar('\'');
+	}
+	// special case 2: '""', which means a double-quote sign "
+	else if (!strcmp("\'\"\"\'", yytext)) {
+		tokenChar('\"');
+	}
+	// general case, e.g., 'e', '4', '+', ...
+	else {
+		char ch = yytext[1];
+		tokenChar(ch);
+	}
+}
+
 	/* TOKEN: strings */
 \"[^\"\n]*\" {
 	// buffer the attained text
@@ -285,11 +347,16 @@ while { bufText(yytext); token(WHILE); }
 			free(strBuf);
 		strBuf = (char*)malloc(sizeof(char) * 200002);
 		strBuf[0] = 0;
-		if (yyleng > 2)
+		if (yyleng > 2) {
 			strncpy(strBuf, yytext + 1, yyleng - 2);
+			strBuf[yyleng - 2] = 0;
+		}
 	}
-	else
+	else {
+		int tLen = strlen(strBuf);
 		strncat(strBuf, yytext + 1, yyleng - 2);
+		strBuf[tLen + yyleng - 2] = 0;
+	}
 
 	// read the next character to check if the string ends or not
 	char nextChar = input();
@@ -297,17 +364,18 @@ while { bufText(yytext); token(WHILE); }
 	// the string token continues
 	if (nextChar == '\"') {
 		strcat(strBuf, "\"");
+		// give back the character just read
+		unput(nextChar);
 		newLiteralStringFlag = 0;
 	}
 	
 	// the string token ends -> get a new token
 	else {
 		newLiteralStringFlag = 1;
-		tokenString(LITERAL_STRING, strBuf);
+		// give back the character just read
+		unput(nextChar);
+		tokenString(strBuf);
 	}
-	
-	// give back the character just read
-	unput(nextChar);
 }
 
 	/* ============================================================ */
