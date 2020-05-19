@@ -22,6 +22,8 @@
 	
 	// append a new hash-table when reaching a new scope
 	void appendHashTable();
+	// remove a hash-table when leaving a scope
+	void removeHashTable();
 	// insert an identifier into the hash-table for the current scope
 	int insertIntoHashTable(const char*);
 	// search for a certain identifier in the latest hash-table
@@ -90,10 +92,7 @@
 
 /* the start symbol */
 program
-	: OBJECT identifier OPEN_BRA object_body CLOSE_BRA {
-		// insert object's name into hash-table
-		insertIntoHashTable(ident);
-		
+	: OBJECT new_symtab identifier { insertIntoHashTable(ident); } OPEN_BRA object_body CLOSE_BRA rem_symtab {
 		clear_stk(1);
 		clear_id_stk(1);
 	}
@@ -101,8 +100,47 @@ program
 
 /* the body of an object */
 object_body
-	: object_body statement
-	| object_body declaration
+	: object_body_first_part method_def
+	;
+
+/* the first part of the object body (var/val declarations & method definitions) */
+object_body_first_part
+	: object_body_first_part declaration
+	| object_body_first_part method_def
+	| %empty
+
+/* the definition of a method */
+method_def
+	: DEF identifier {
+		// insert this method identifier into the symbol-table
+		insertIntoHashTable(ident);
+		// and set its item-type as a method
+		Item* item = lookupInHashTable(ident);
+		item->itemType = _method;
+	} OPEN_PAR new_symtab opt_formal_argus CLOSE_PAR opt_type_dclr OPEN_BRA def_body CLOSE_BRA rem_symtab
+	;
+
+/* the optional formal arguments for a method definition */
+opt_formal_argus
+	: one_formal_argu more_formal_argus
+	| %empty
+	;
+
+/* more formal arguments for a method definition */
+more_formal_argus
+	: COMMA one_formal_argu more_formal_argus
+	| %empty
+	;
+
+/* a formal argument for a memory definition */
+one_formal_argu
+	: identifier COLON data_type
+	;
+
+/* the body of a method definition */
+def_body
+	: def_body declaration
+	| def_body statement
 	| %empty
 	;
 
@@ -158,19 +196,17 @@ statement
 
 /* a single statement */
 stmt
-	// an assignment
 	: assignment
-	// a function invocation
+	| expr
 	| func_invoc
-	// a print statement
 	| PRINT OPEN_PAR expr CLOSE_PAR { printOutExpr(0); }
-	// a println statement
 	| PRINTLN OPEN_PAR expr CLOSE_PAR { printOutExpr(1); }
+	| READ OPEN_PAR /* TODO */
 	;
 
 /* the assignment */
 assignment
-	: identifier { push_id(ident); } opt_squared_brackets '=' expr {
+	: identifier opt_squared_brackets '=' expr {
 		// pop a Tnode from the stack
 		Tnode* nd = pop_stk();
 		
@@ -218,6 +254,17 @@ assignment
 								getLiteralDataTypeName(item->a_value->_atype),
 								getLiteralDataTypeName(nd->_type));
 							yywarning(msg);
+						
+							// float-to-int is still acceptable
+							if (item->a_value->_atype == _int && nd->_type == _float) {
+								item->a_value->_ai[idx] = (int) nd->_f;
+								item->a_value->hasAssigned[idx] = 1;
+							}
+							// int-to-float as well
+							else if (item->a_value->_atype == _float && nd->_type == _int) {
+								item->a_value->_af[idx] = (float) nd->_i;
+								item->a_value->hasAssigned[idx] = 1;
+							}
 						}
 						// no type errors
 						else {
@@ -246,16 +293,23 @@ assignment
 				// if the assignee is a variable
 				if (item->itemType == _variable) {
 					// the types of lhs and rhs is NOT the same -> type error
-					if (item->value->_type != nd->_type) {
+					if (item->value->_type != _none && item->value->_type != nd->_type) {
 						char msg[2002];
 						sprintf(msg, "Type error. The LHS of the assignment is the type of \'%s\', while the RHS is \'%s\'.",
 							getLiteralDataTypeName(item->value->_type),
 							getLiteralDataTypeName(nd->_type));
 						yywarning(msg);
+						
+						// float-to-int is still acceptable
+						if (item->value->_type == _int && nd->_type == _float)
+							item->value->_i = (int) nd->_f;
+						// int-to-float as well
+						else if (item->value->_type == _float && nd->_type == _int)
+							item->value->_f = (float) nd->_i;
 					}
 					// no type errors
 					else {
-						// set the value of a certain position of this array
+						// set the value of this variable
 						switch (nd->_type) {
 							case _char: item->value->_c = nd->_c; break;
 							case _string:
@@ -268,6 +322,10 @@ assignment
 							case _boolean: item->value->_b = nd->_b; break;
 							case _float: item->value->_f = nd->_f; break;
 						}
+						
+						// set the item-type if it is still unknown
+						if (item->value->_type == _none)
+							item->value->_type = nd->_type;
 					}
 				}
 				
@@ -298,7 +356,7 @@ assignment
 
 /* optional squared brackets for the assignee */
 opt_squared_brackets
-	: OPEN_SQB expr CLOSE_SQB {
+	: OPEN_SQB { push_id(ident); } expr CLOSE_SQB {
 		// set the flag to identify that the assignee is an array
 		isAssineeArr = 1;
 		
@@ -319,7 +377,7 @@ opt_squared_brackets
 		isAssineeArr = 0;
 		
 		// pop the identifier since the pushing operation just done is redundant
-		pop_id();
+		//pop_id();
 		
 		// store the assignee through the temporally-stored ident
 		storeAssigneeFromIdent();
@@ -494,6 +552,14 @@ identifier
 	}
 	;
 
+/* the marker for creating a new symbol-table for scoping */
+new_symtab
+	: %empty { appendHashTable(); }
+
+/* the marker for removing a symbol-table for scoping */
+rem_symtab
+	: %empty { removeHashTable(); }
+
 %%
 
 // error happens -> tell the user and exit
@@ -511,9 +577,6 @@ int yywarning(const char* msg) {
 
 // the main function
 int main() {
-	// initialize the first-scoped hash-table
-	appendHashTable();
-	
 	yyparse();
 	return 0;
 }
@@ -539,6 +602,22 @@ void appendHashTable() {
 	}
 }
 
+// remove a hash-table when leaving a scope
+void removeHashTable() {
+	// if there's no symbol-table, return directly
+	if (htail == NULL)
+		return;
+	
+	// delete the table at the tail
+	delete_table(htail->table);
+	
+	// update the htail pointer
+	Hnode* p = htail;
+	htail = htail->prev;
+	htail->next = NULL;
+	free(p);
+}
+
 // insert an identifier into the hash-table for the current scope
 int insertIntoHashTable(const char* name) {
 	// first, check if the htail (the latest hash-table) is NULL or not
@@ -551,7 +630,17 @@ int insertIntoHashTable(const char* name) {
 
 // search for a certain identifier in the latest hash-table
 Item* lookupInHashTable(const char* name) {
-	return lookup(htail->table, name);
+	// iteratively search for the identifier from the latest symbol-table to the first one
+	Hnode* p = htail;
+	while (p) {
+		Item* item = lookup(p->table, name);
+		if (item != NULL)
+			return item;
+		p = p->prev;
+	}
+	
+	// not found
+	return NULL;
 }
 
 // in a certain unary operation, check if the type of the operand are compatible with this operation or not

@@ -20,6 +20,7 @@ typedef enum item_type {
 	_variable = 0,
 	_constant = 1,
 	_array = 2,
+	_method = 3,
 	_none_item = 65536
 }ItemType;
 
@@ -139,6 +140,63 @@ int insert(Slot* table, const char* name) {
 	
 	// return the index of this identifier of the hash-table
 	return idx;
+}
+
+// free an item
+void free_item(Item* item) {
+	// free the name of this item
+	if (item->name != NULL)
+		free(item->name);
+	
+	// free the Tnode of this item
+	if (item->value != NULL) {
+		if (item->value->_s != NULL)
+			free(item->value->_s);
+		free(item->value);
+	}
+	
+	// free the Anode of this item
+	if (item->a_value != NULL) {
+		if (item->a_value->hasAssigned != NULL)
+			free(item->a_value->hasAssigned);
+		if (item->a_value->_ac != NULL)
+			free(item->a_value->_ac);
+		if (item->a_value->_as != NULL) {
+			// free an array of strings
+			int k;
+			for (k = 0; k < item->a_value->asize; ++k)
+				free(item->a_value->_as[k]);
+			free(item->a_value->_as);
+		}
+		if (item->a_value->_ai != NULL)
+			free(item->a_value->_ai);
+		if (item->a_value->_ab != NULL)
+			free(item->a_value->_ab);
+		if (item->a_value->_af != NULL)
+			free(item->a_value->_af);
+		
+		// free the Anode
+		free(item->a_value);
+	}
+}
+
+// delete a whole hash-table
+void delete_table(Slot* table) {
+	// delete every slot of the hash-table
+	int k;
+	for(k = 0; k < HT_SIZE; ++k) {
+		// delete every node of the linked-list of this slot
+		Lnode* lp = table[k].lhead;
+		while (lp) {
+			// free the item of this node
+			free_item(lp->data);
+			lp = lp->next;
+		}
+	}
+	
+	// free the table
+	free(table);
+	table = NULL;
 }
 
 // dump all identifiers of a hash-table and return the number of identifiers
