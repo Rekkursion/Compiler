@@ -164,7 +164,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 52 "xxx.y" /* yacc.c:1909  */
+#line 59 "xxx.y" /* yacc.c:1909  */
 
 	Tnode* tnode;
 	DataType dataType;

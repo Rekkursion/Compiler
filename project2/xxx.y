@@ -1,6 +1,7 @@
 %{
 	#include <stdio.h>
 	#include "symbol_table.hpp"
+	#include "id_stack.hpp"
 	#include "tnode_stack.hpp"
 	
 	// a node of a hash-table
@@ -36,16 +37,22 @@
 	// insert a new array of some data type
 	int insertArrayId(DataType);
 	
-	/* helper variables */
+	// print out an expression at the top of the Tnode stack
+	void printOutExpr(int);
 	
-	// check if the current deriving numeric expression is an INT (or a FLOAT)
-	int isIntFlag = 1;
+	/* helper variables */
 	
 	// temporally store the name of an identifier
 	char* ident = NULL;
 	
 	// temporally store the name of a variable/constant that is about to be assigned
 	char* assignee = NULL;
+	
+	// the index of an array as an assignee
+	int assigneeArrIdx = -1;
+	
+	// the flag for identifying the assignee is an array or a single variable/constant
+	int isAssineeArr = 0;
 %}
 
 /* the union of different types */
@@ -86,7 +93,9 @@ program
 	: OBJECT identifier OPEN_BRA object_body CLOSE_BRA {
 		// insert object's name into hash-table
 		insertIntoHashTable(ident);
+		
 		clear_stk(1);
+		clear_id_stk(1);
 	}
 	;
 
@@ -124,13 +133,10 @@ val_dclr
 
 /* the declaration of a variable */
 var_dclr
-	: VAR identifier { storeAssigneeFromIdent(); } var_dclr_postfix
-	;
-
-/* the postfix portion of a declaration of a variable */
-var_dclr_postfix
-	: opt_type_dclr opt_init { insertAndInitId(0, $1); }
-	| COLON data_type OPEN_SQB expr CLOSE_SQB { insertArrayId($2); }
+	// normal single variable, i.e., NOT array -> store the assignee temporally
+	: VAR identifier opt_type_dclr { storeAssigneeFromIdent(); } opt_init { insertAndInitId(0, $3); }
+	// array -> push the assignee (the identifier of this array) to the id-stack
+	| VAR identifier COLON data_type OPEN_SQB { push_id(ident); } expr CLOSE_SQB { insertArrayId($4); }
 	;
 
 /* the optional type declaration when declaring a variable/constant */
@@ -152,20 +158,172 @@ statement
 
 /* a single statement */
 stmt
+	// an assignment
 	: assignment
-	| expr
+	// a function invocation
 	| func_invoc
+	// a print statement
+	| PRINT OPEN_PAR expr CLOSE_PAR { printOutExpr(0); }
+	// a println statement
+	| PRINTLN OPEN_PAR expr CLOSE_PAR { printOutExpr(1); }
 	;
 
 /* the assignment */
 assignment
-	: identifier { storeAssigneeFromIdent(); } assignment_postfix
+	: identifier { push_id(ident); } opt_squared_brackets '=' expr {
+		// pop a Tnode from the stack
+		Tnode* nd = pop_stk();
+		
+		// there're 2 cases to get the item: from the id-stack & from the temporally-stored assignee
+		Item* item = NULL;
+		
+		// if the assignee is a position of an array
+		if (isAssineeArr) {
+			char* id = pop_id();
+			item = lookupInHashTable(id);
+			free(id);
+		}
+		// if the assignee is a single variable/constant
+		else
+			item = lookupInHashTable(assignee);
+		
+		// if no item found
+		if (item == NULL)
+			yywarning("Symbol Error. No such identifier in this scope found.");
+		// general case
+		else {
+			// if the assignee is a position of an array
+			if (isAssineeArr) {
+				// the symbol is NOT an array but it is used as an array -> symbol error
+				if (item->itemType != _array) {
+					char msg[202];
+					sprintf(msg, "Symbol Error. The identifier \"%s\" is NOT an array, but you try to use it as it is.", item->name);
+					yywarning(msg);
+				}
+				// it actually IS an array
+				else {
+					// get the index
+					int idx = assigneeArrIdx;
+					
+					// if the index is out of range -> index error
+					if (idx < 0 || idx >= item->a_value->asize)
+						yywarning("Index Error. The index of the array is out of range.");
+					
+					// the index is NOT out of range
+					else {
+						// the types of lhs and rhs is NOT the same -> type error
+						if (item->a_value->_atype != nd->_type) {
+							char msg[2002];
+							sprintf(msg, "Type error. The LHS of the assignment is the type of \'%s\', while the RHS is \'%s\'.",
+								getLiteralDataTypeName(item->a_value->_atype),
+								getLiteralDataTypeName(nd->_type));
+							yywarning(msg);
+						}
+						// no type errors
+						else {
+							// set the value of a certain position of this array
+							switch (nd->_type) {
+								case _char: item->a_value->_ac[idx] = nd->_c; break;
+								case _string:
+									if (item->a_value->_as[idx] != NULL)
+										free(item->a_value->_as[idx]);
+									item->a_value->_as[idx] = (char*)malloc(sizeof(char) * (strlen(nd->_s) + 1));
+									strcpy(item->a_value->_as[idx], nd->_s);
+									break;
+								case _int: item->a_value->_ai[idx] = nd->_i; break;
+								case _boolean: item->a_value->_ab[idx] = nd->_b; break;
+								case _float: item->a_value->_af[idx] = nd->_f; break;
+							}
+							
+							// set the flag that this position has been assigned
+							item->a_value->hasAssigned[idx] = 1;
+						}
+					}
+				}
+			}
+			// if the assignee is a single variable/constant
+			else {
+				// if the assignee is a variable
+				if (item->itemType == _variable) {
+					// the types of lhs and rhs is NOT the same -> type error
+					if (item->value->_type != nd->_type) {
+						char msg[2002];
+						sprintf(msg, "Type error. The LHS of the assignment is the type of \'%s\', while the RHS is \'%s\'.",
+							getLiteralDataTypeName(item->value->_type),
+							getLiteralDataTypeName(nd->_type));
+						yywarning(msg);
+					}
+					// no type errors
+					else {
+						// set the value of a certain position of this array
+						switch (nd->_type) {
+							case _char: item->value->_c = nd->_c; break;
+							case _string:
+								if (item->value->_s != NULL)
+									free(item->value->_s);
+								item->value->_s = (char*)malloc(sizeof(char) * (strlen(nd->_s) + 1));
+								strcpy(item->value->_s, nd->_s);
+								break;
+							case _int: item->value->_i = nd->_i; break;
+							case _boolean: item->value->_b = nd->_b; break;
+							case _float: item->value->_f = nd->_f; break;
+						}
+					}
+				}
+				
+				// if it's a constant -> symbol error (cannot re-assign a constant)
+				else if (item->itemType == _constant) {
+					char msg[202];
+					sprintf(msg, "Symbol Error. The identifier \"%s\" is a constant, which CANNOT be re-assigned.", item->name);
+					yywarning(msg);
+				}
+				
+				// if it's an array -> symbol error
+				else if (item->itemType == _array) {
+					char msg[202];
+					sprintf(msg, "Symbol Error. The identifier \"%s\" is an array. You cannot use it without applying the index.", item->name);
+					yywarning(msg);
+				}
+				
+				// neither a variable nor a constant -> symbol error
+				else {
+					char msg[202];
+					sprintf(msg, "Symbol Error. The identifier \"%s\" is neither a variable nor a constant.", item->name);
+					yywarning(msg);
+				}
+			}
+		}
+	}
 	;
 
-/* the postfix portion of an assignment */
-assignment_postfix
-	: '=' expr { /* TODO */ }
-	| OPEN_SQB expr CLOSE_SQB '=' expr { /* TODO */ }
+/* optional squared brackets for the assignee */
+opt_squared_brackets
+	: OPEN_SQB expr CLOSE_SQB {
+		// set the flag to identify that the assignee is an array
+		isAssineeArr = 1;
+		
+		// pop a Tnode for attaining the index of the array
+		Tnode* ndForIdx = pop_stk();
+		
+		// the index expression yields NON-integer value -> type error
+		if (ndForIdx->_type != _int) {
+			assigneeArrIdx = (ndForIdx->_type == _float ? ((int) ndForIdx->_f) : 0);
+			yywarning("Type Error. The index of an array must be an INTEGER.");
+		}
+		// the index expression is exactly an integer value
+		else
+			assigneeArrIdx = ndForIdx->_i;
+	}
+	| %empty {
+		// set the flag to identify that the assignee is a single variable/constant (NOT an array)
+		isAssineeArr = 0;
+		
+		// pop the identifier since the pushing operation just done is redundant
+		pop_id();
+		
+		// store the assignee through the temporally-stored ident
+		storeAssigneeFromIdent();
+	}
 	;
 
 expr
@@ -196,19 +354,24 @@ expr
 /* string expression */
 	| LITERAL_STRING { push_stk($1); }
 /* identifier, including variable, constant, & array */
-	| identifier OPEN_SQB expr CLOSE_SQB {
+	| identifier { push_id(ident); } OPEN_SQB expr CLOSE_SQB {
+		// get the identifier from the top of the id-stack
+		char* id = pop_id();
+	
 		// search for the identifier
-		Item* item = lookupInHashTable(ident);
+		Item* item = lookupInHashTable(id);
 		
 		// no identifier found -> symbol error
 		if (item == NULL)
 			yywarning("Symbol Error. No such array identifier found.");
-		
 		// normal case
 		else {
 			// this item is a single value, i.e., a variable or a constant -> symbol error
-			if (item->itemType == _variable || item->itemType == _constant)
-				yywarning("This identifier is NOT an array.");
+			if (item->itemType == _variable || item->itemType == _constant) {
+				char msg[202];
+				sprintf(msg, "The identifier \"%s\" is NOT an array.", id);
+				yywarning(msg);
+			}
 			
 			// is an array
 			else if (item->itemType == _array) {
@@ -266,6 +429,9 @@ expr
 			else
 				yywarning("This identifier is NOT a variable/constant nor an array.");
 		}
+		
+		// free the pop'd identifier
+		free(id);
 	}
 	| identifier {
 		// search for the identifier
@@ -289,7 +455,7 @@ expr
 			
 			// is an array -> symbol error
 			else if (item->itemType == _array)
-				yywarning("Symbol Error. You cannot use array without explicitly telling the index.");
+				yywarning("Symbol Error. You cannot use array without applying the index.");
 			
 			// not variable/constant nor array -> symbol error
 			else
@@ -725,19 +891,29 @@ int insertAndInitId(int isConstant, DataType declaredType) {
 
 // insert a new array of some data type
 int insertArrayId(DataType declaredType) {
-	// search for the identifier by the temporally stored assignee
-	int insertionRes = insertIntoHashTable(assignee);
+	// pop an identifier from the id-stack
+	char* id = pop_id();
 	
-	// if this assignee has already been declared in the same (current) scope
+	// if there's no identifier in the id-stack -> symbol error
+	if (id == NULL) {
+		yywarning("Symbol Error. There\'s no identifier to be assigned.");
+		return 0;
+	}
+
+	// insert the pop'd identifier into the hash-table
+	int insertionRes = insertIntoHashTable(id);
+	
+	// if this identifier has already been declared in the same (current) scope
 	if (insertionRes == -1) {
 		char msg[2002];
-		sprintf(msg, "Symbol Error. The identifier \'%s\' has already been declared in the same scope.", assignee);
+		sprintf(msg, "Symbol Error. The identifier \'%s\' has already been declared in the same scope.", id);
 		yywarning(msg);
+		free(id);
 		return 0;
 	}
 	
 	// get the item just inserted
-	Item* item = lookupInHashTable(assignee);
+	Item* item = lookupInHashTable(id);
 	
 	// set the item-type
 	item->itemType = _array;
@@ -748,6 +924,7 @@ int insertArrayId(DataType declaredType) {
 	// if there's no declared size -> syntax error
 	if (ndForSize == NULL) {
 		yywarning("Syntax Error. The size of an array must be explicitly declared.");
+		free(id);
 		return 0;
 	}
 	
@@ -757,12 +934,20 @@ int insertArrayId(DataType declaredType) {
 	// if the type of the Tnode-for-size is NOT an INT -> type error
 	if (ndForSize->_type != _int) {
 		yywarning("Type Error. The size of an array must be an INTEGER.");
+		free(id);
 		return 0;
 	}
 	
 	// determine the size of this array
 	else
 		size = ndForSize->_i;
+	
+	// if the size of the array is negative
+	if (size < 0) {
+		yywarning("Value Error. The size of an array must be non-negative.");
+		free(id);
+		return 0;
+	}
 	
 	// build a new Anode
 	Anode* anode = (Anode*)malloc(sizeof(Anode));
@@ -796,6 +981,30 @@ int insertArrayId(DataType declaredType) {
 	// set the Anode as the a_value of the item
 	item->a_value = anode;
 	
+	// free the pop'd identifier
+	free(id);
+	
 	// return successfully
 	return 1;
+}
+
+// print out an expression at the top of the Tnode stack
+void printOutExpr(int shouldPutNewLine) {
+	// pop a Tnode from the stack to get the expression at the top
+	Tnode* nd = pop_stk();
+	
+	// if the pop'd Tnode is NOT NULL -> print the data out according to the data type
+	if (nd != NULL) {
+		switch (nd->_type) {
+			case _char: printf("%c", nd->_c); break;
+			case _string: printf("%s", nd->_s); break;
+			case _int: printf("%d", nd->_i); break;
+			case _boolean: printf("%s", (nd->_b ? "true" : "false")); break;
+			case _float: printf("%lf", nd->_f); break;
+		}
+	}
+	
+	// put a new-line at the end of the output if needs
+	if (shouldPutNewLine)
+		printf("\n");
 }
