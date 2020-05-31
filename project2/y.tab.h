@@ -56,50 +56,53 @@ extern int yydebug;
     NE = 266,
     MOD = 267,
     UMINUS = 268,
-    COMMA = 269,
-    COLON = 270,
-    PERIOD = 271,
-    SEMICOLON = 272,
-    OPEN_PAR = 273,
-    CLOSE_PAR = 274,
-    OPEN_SQB = 275,
-    CLOSE_SQB = 276,
-    OPEN_BRA = 277,
-    CLOSE_BRA = 278,
-    BOOLEAN = 279,
-    BREAK = 280,
-    CHAR = 281,
-    CASE = 282,
-    CLASS = 283,
-    CONTINUE = 284,
-    DEF = 285,
-    DO = 286,
-    ELSE = 287,
-    EXIT = 288,
-    FALSE = 289,
-    FLOAT = 290,
-    FOR = 291,
-    IF = 292,
-    INT = 293,
-    NULLS = 294,
-    OBJECT = 295,
-    PRINT = 296,
-    PRINTLN = 297,
-    READ = 298,
-    REPEAT = 299,
-    RETURN = 300,
-    STRING = 301,
-    TO = 302,
-    TRUE = 303,
-    TYPE = 304,
-    VAL = 305,
-    VAR = 306,
-    WHILE = 307,
-    ID = 308,
-    LITERAL_INTEGER = 309,
-    LITERAL_FLOAT = 310,
-    LITERAL_CHAR = 311,
-    LITERAL_STRING = 312
+    ASSIGNMENT = 269,
+    EXPR = 270,
+    COMMA = 271,
+    COLON = 272,
+    PERIOD = 273,
+    SEMICOLON = 274,
+    OPEN_PAR = 275,
+    CLOSE_PAR = 276,
+    OPEN_SQB = 277,
+    CLOSE_SQB = 278,
+    OPEN_BRA = 279,
+    CLOSE_BRA = 280,
+    ARROW_IN_FOR = 281,
+    BOOLEAN = 282,
+    BREAK = 283,
+    CHAR = 284,
+    CASE = 285,
+    CLASS = 286,
+    CONTINUE = 287,
+    DEF = 288,
+    DO = 289,
+    ELSE = 290,
+    EXIT = 291,
+    FALSE = 292,
+    FLOAT = 293,
+    FOR = 294,
+    IF = 295,
+    INT = 296,
+    NULLS = 297,
+    OBJECT = 298,
+    PRINT = 299,
+    PRINTLN = 300,
+    READ = 301,
+    REPEAT = 302,
+    RETURN = 303,
+    STRING = 304,
+    TO = 305,
+    TRUE = 306,
+    TYPE = 307,
+    VAL = 308,
+    VAR = 309,
+    WHILE = 310,
+    ID = 311,
+    LITERAL_CHAR = 312,
+    LITERAL_STRING = 313,
+    LITERAL_INTEGER = 314,
+    LITERAL_FLOAT = 315
   };
 #endif
 /* Tokens.  */
@@ -114,62 +117,69 @@ extern int yydebug;
 #define NE 266
 #define MOD 267
 #define UMINUS 268
-#define COMMA 269
-#define COLON 270
-#define PERIOD 271
-#define SEMICOLON 272
-#define OPEN_PAR 273
-#define CLOSE_PAR 274
-#define OPEN_SQB 275
-#define CLOSE_SQB 276
-#define OPEN_BRA 277
-#define CLOSE_BRA 278
-#define BOOLEAN 279
-#define BREAK 280
-#define CHAR 281
-#define CASE 282
-#define CLASS 283
-#define CONTINUE 284
-#define DEF 285
-#define DO 286
-#define ELSE 287
-#define EXIT 288
-#define FALSE 289
-#define FLOAT 290
-#define FOR 291
-#define IF 292
-#define INT 293
-#define NULLS 294
-#define OBJECT 295
-#define PRINT 296
-#define PRINTLN 297
-#define READ 298
-#define REPEAT 299
-#define RETURN 300
-#define STRING 301
-#define TO 302
-#define TRUE 303
-#define TYPE 304
-#define VAL 305
-#define VAR 306
-#define WHILE 307
-#define ID 308
-#define LITERAL_INTEGER 309
-#define LITERAL_FLOAT 310
-#define LITERAL_CHAR 311
-#define LITERAL_STRING 312
+#define ASSIGNMENT 269
+#define EXPR 270
+#define COMMA 271
+#define COLON 272
+#define PERIOD 273
+#define SEMICOLON 274
+#define OPEN_PAR 275
+#define CLOSE_PAR 276
+#define OPEN_SQB 277
+#define CLOSE_SQB 278
+#define OPEN_BRA 279
+#define CLOSE_BRA 280
+#define ARROW_IN_FOR 281
+#define BOOLEAN 282
+#define BREAK 283
+#define CHAR 284
+#define CASE 285
+#define CLASS 286
+#define CONTINUE 287
+#define DEF 288
+#define DO 289
+#define ELSE 290
+#define EXIT 291
+#define FALSE 292
+#define FLOAT 293
+#define FOR 294
+#define IF 295
+#define INT 296
+#define NULLS 297
+#define OBJECT 298
+#define PRINT 299
+#define PRINTLN 300
+#define READ 301
+#define REPEAT 302
+#define RETURN 303
+#define STRING 304
+#define TO 305
+#define TRUE 306
+#define TYPE 307
+#define VAL 308
+#define VAR 309
+#define WHILE 310
+#define ID 311
+#define LITERAL_CHAR 312
+#define LITERAL_STRING 313
+#define LITERAL_INTEGER 314
+#define LITERAL_FLOAT 315
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 61 "xxx.y" /* yacc.c:1909  */
+#line 82 "xxx.y" /* yacc.c:1909  */
 
-	Tnode* tnode;
+	char c;
+	char s[2002];
+	int i;
+	int b;
+	double f;
 	DataType dataType;
 
-#line 173 "y.tab.h" /* yacc.c:1909  */
+#line 183 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

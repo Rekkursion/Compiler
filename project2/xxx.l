@@ -8,7 +8,7 @@
 	
 	#include <stdio.h>
 	#include <string.h>
-	#include "tnode.h"
+	#include "data_type.h"
 	#include "y.tab.h"
 	
 	// buffer the attained text of the input content
@@ -20,73 +20,35 @@
 		} \
 	}
 	
-	// get a literal string token
-	#define tokenString(s) { \
-		if (yylval.tnode != NULL) { \
-			if (yylval.tnode->_s != NULL) \
-				free(yylval.tnode->_s); \
-			free(yylval.tnode); \
-		} \
-		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
-		yylval.tnode->_s = (char*)malloc(sizeof(char) * (strlen(s) + 1)); \
-		strcpy(yylval.tnode->_s, s); \
-		yylval.tnode->_type = _string; \
-		return LITERAL_STRING; \
-	}
-	
 	// get a literal character token
-	#define tokenChar(c) { \
-		if (yylval.tnode != NULL) { \
-			if (yylval.tnode->_s != NULL) \
-				free(yylval.tnode->_s); \
-			free(yylval.tnode); \
-		} \
-		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
-		yylval.tnode->_s = NULL; \
-		yylval.tnode->_c = c; \
-		yylval.tnode->_type = _char; \
+	#define tokenChar(ch) { \
+		yylval.c = ch; \
 		return LITERAL_CHAR; \
 	}
 	
+	// get a literal string token
+	#define tokenString(str) { \
+		strcpy(yylval.s, str); \
+		yylval.s[strlen(str)] = 0; \
+		return LITERAL_STRING; \
+	}
+	
 	// get an integer token
-	#define tokenInteger(i) { \
-		if (yylval.tnode != NULL) { \
-			if (yylval.tnode->_s != NULL) \
-				free(yylval.tnode->_s); \
-			free(yylval.tnode); \
-		} \
-		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
-		sscanf(yytext, "%d", &yylval.tnode->_i); \
-		yylval.tnode->_s = NULL; \
-		yylval.tnode->_type = _int; \
+	#define tokenInteger(str_i) { \
+		sscanf(yytext, "%d", &(yylval.i)); \
 		return LITERAL_INTEGER; \
 	}
 	
 	// get a real number token
-	#define tokenReal(r) { \
-		if (yylval.tnode != NULL) { \
-			if (yylval.tnode->_s != NULL) \
-				free(yylval.tnode->_s); \
-			free(yylval.tnode); \
-		} \
-		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
-		sscanf(yytext, "%lf", &yylval.tnode->_f); \
-		yylval.tnode->_s = NULL; \
-		yylval.tnode->_type = _float; \
+	#define tokenReal(str_r) { \
+		sscanf(yytext, "%lf", &(yylval.f)); \
 		return LITERAL_FLOAT; \
 	}
 	
 	// get an identifier token
 	#define tokenId(id) { \
-		if (yylval.tnode != NULL) { \
-			if (yylval.tnode->_s != NULL) \
-				free(yylval.tnode->_s); \
-			free(yylval.tnode); \
-		} \
-		yylval.tnode = (Tnode*)malloc(sizeof(Tnode)); \
-		yylval.tnode->_s = (char*)malloc(sizeof(char) * (strlen(yytext) + 1)); \
-		strcpy(yylval.tnode->_s, yytext); \
-		yylval.tnode->_type = _id; \
+		strcpy(yylval.s, yytext); \
+		yylval.s[strlen(yytext)] = 0; \
 		return ID; \
 	}
 	
@@ -204,6 +166,9 @@ dgts [0-9]+
 
 	/* TOKEN: "=" (assignment) -> assignment operators */
 "=" { bufText("="); token('='); }
+
+	/* TOKEN: "<-" (identifier assignment in a FOR loop) -> assignment operators */
+"<-" { bufText("<-"); token(ARROW_IN_FOR); }
 
 	/* ============================================================ */
 	/* tokens of keywords */

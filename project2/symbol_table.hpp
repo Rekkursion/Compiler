@@ -1,14 +1,19 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef _TNODE
-#include "tnode.h"
-#define _TNODE
+#ifndef _DATA_TYPE
+#include "data_type.h"
+#define _DATA_TYPE
 #endif
 
-#ifndef _ANODE
-#include "anode.h"
-#define _ANODE
+#ifndef _ITEM_TYPE
+#include "item_type.h"
+#define _ITEM_TYPE
+#endif
+
+#ifndef _METH_DEF
+#include "meth_def.hpp"
+#define _METH_DEF
 #endif
 
 // the size of the hash-table
@@ -16,25 +21,22 @@
 
 /* ============================================================ */
 
-typedef enum item_type {
-	_variable = 0,
-	_constant = 1,
-	_array = 2,
-	_method = 3,
-	_none_item = 65536
-}ItemType;
-
 // an item (data) of a hash-table node
 typedef struct item {
+	// the type of this item: variable, constant, array, or method
 	ItemType itemType;
-	char* name;
-	Tnode* value;
 	
-	// 'a' in the field name stands for "array"
-	Anode* a_value;
+	// the data type of this item if this item is a variable/constant or an array
+	DataType dataType;
+	
+	// the method definition, used only when the item-type is _method
+	MethDef* methDef;
+	
+	// the symbol of this item
+	char* name;
 }Item;
 
-// an lnode is a node of a list
+// an Lnode is a node of a list
 typedef struct lnode {
 	Item* data;
 	struct lnode* next;
@@ -46,12 +48,13 @@ typedef struct slot {
 	Lnode* ltail;
 }Slot;
 
-// define the table
+// type-define the table
 typedef Slot* HashTable;
 
 /* ============================================================ */
 
-// do hashing with a string
+// do hashing with a string:
+// sum up ascii-values of all characters of a string, then mod'd it by a fixed number, i.e, the size of a hash-table
 int hash(const char* str) {
 	// the returning value
 	int ret = 0;
@@ -116,8 +119,7 @@ int insert(Slot* table, const char* name) {
 	Item* data = (Item*)malloc(sizeof(Item));
 	data->name = (char*)malloc(sizeof(char) * (nameLen + 1));
 	data->itemType = _none_item;
-	data->value = NULL;
-	data->a_value = NULL;
+	data->methDef = NULL;
 	strcpy(data->name, name);
 	
 	// build a list node
@@ -148,36 +150,8 @@ void free_item(Item* item) {
 	if (item->name != NULL)
 		free(item->name);
 	
-	// free the Tnode of this item
-	if (item->value != NULL) {
-		if (item->value->_s != NULL)
-			free(item->value->_s);
-		free(item->value);
-	}
-	
-	// free the Anode of this item
-	if (item->a_value != NULL) {
-		if (item->a_value->hasAssigned != NULL)
-			free(item->a_value->hasAssigned);
-		if (item->a_value->_ac != NULL)
-			free(item->a_value->_ac);
-		if (item->a_value->_as != NULL) {
-			// free an array of strings
-			int k;
-			for (k = 0; k < item->a_value->asize; ++k)
-				free(item->a_value->_as[k]);
-			free(item->a_value->_as);
-		}
-		if (item->a_value->_ai != NULL)
-			free(item->a_value->_ai);
-		if (item->a_value->_ab != NULL)
-			free(item->a_value->_ab);
-		if (item->a_value->_af != NULL)
-			free(item->a_value->_af);
-		
-		// free the Anode
-		free(item->a_value);
-	}
+	// free itself
+	free(item);
 }
 
 // delete a whole hash-table
@@ -213,19 +187,12 @@ int dump(Slot* table) {
 		// visit all nodes of each entry
 		Lnode* ptr = table[k].lhead;
 		while (ptr) {
-			/* print the identifier out */
+			// print the identifier out
 			printf("|%d|%s|", ptr->data->itemType, ptr->data->name);
-			if (ptr->data->value)
-				printf("dtype:%d|\n", ptr->data->value->_type);
-			else {
-				if (ptr->data->a_value)
-					printf("size_of_arr:%d|\n", ptr->data->a_value->asize);
-				else
-					printf("no assigned value|\n");
-			}
 			
 			// count the number of identifiers
 			++counter;
+			
 			// go to the next node
 			ptr = ptr->next;
 		}

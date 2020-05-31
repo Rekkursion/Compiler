@@ -1,65 +1,90 @@
 %{
 	#include <stdio.h>
 	#include "symbol_table.hpp"
-	#include "id_stack.hpp"
-	#include "tnode_stack.hpp"
+	#include "e_stack.hpp"
+	#include "v_stack.hpp"
 	
-	// a node of a hash-table
+	
+	// a node of a single hash-table
 	typedef struct hnode {
+		// the hash-table to store identifiers in a certain scope
 		HashTable table;
+		// the pointer points to the previous Hnode
 		struct hnode* prev;
-		struct hnode* next;
 	}Hnode;
 	
 	// the linked-list of hash-tables for scoping
 	Hnode* hhead = NULL;
 	Hnode* htail = NULL;
 	
+	
 	/* function definitions */
 	
-	// handle warnings
-	int yywarning(const char*);
+	// handle warnings during parsing
+	int warn(const char*);
 	
-	// append a new hash-table when reaching a new scope
+	// construct the warning message and print it out to warn the user (f stands for formatted)
+	int fwarn(const char*, const char*, const char*, const char*, const char*, const char*);
+	
+	// append a new hash-table when entering a new scope
 	void appendHashTable();
-	// remove a hash-table when leaving a scope
+	
+	// remove a hash-table from the tail when leaving a scope
 	void removeHashTable();
-	// insert an identifier into the hash-table for the current scope
-	int insertIntoHashTable(const char*);
-	// search for a certain identifier in the latest hash-table
+	
+	// insert an identifier into the currently-scoped hash-table
+	int insertIntoHashTable(const char*, ItemType, DataType);
+	
+	// search for a certain identifier in the currently-scoped hash-table
 	Item* lookupInHashTable(const char*);
 	
-	// store the assignee (the identifier which is about to be assigned)
-	void storeAssigneeFromIdent();
+	// initialize the new identifier and insert it into the currently-scoped hash-table
+	int initNewId(const char*, ItemType, DataType, DataType);
+
+	// check if the usage of a/an variable/constant/array is correct or not
+	int checkUsageOfValVarArr(const char*, int);
 	
-	// in a certain operation (UNARY or BINARY), check if type(s) of operand(s) are compatible with the operation or not
-	int doOperation(Tnode*, char*, int, int);
-	// insert a new variable/constant and do the initialization with the type checking
-	int insertAndInitId(int, DataType);
-	// insert a new array of some data type
-	int insertArrayId(DataType);
+	// set the assignee, i.e., the identifier which is about to be assigned
+	void setAssignee();
 	
-	// print out an expression at the top of the Tnode stack
-	void printOutExpr(int);
+	// check the return type of a method when analyzing a RETURN statement
+	int checkReturnType();
+	
+	// check if the expression is a boolean expression or not (for IF & WHILE statements)
+	int checkBooleanExpr(const char*);
+	
+	// check if the expression is a numeric (int & float) expression or not
+	int checkNumExpr();
+	
 	
 	/* helper variables */
 	
-	// temporally store the name of an identifier
+	// the temporally-saved identifier
 	char* ident = NULL;
 	
-	// temporally store the name of a variable/constant that is about to be assigned
+	// the temporally-saved assignee, i.e., the identifier which is about to be assigned
 	char* assignee = NULL;
 	
-	// the index of an array as an assignee
-	int assigneeArrIdx = -1;
+	// the temporally-saved the method when defining one
+	Item* methItem = NULL;
 	
-	// the flag for identifying the assignee is an array or a single variable/constant
-	int isAssineeArr = 0;
+	// the counter of actual arguments when invocating a certain method
+	int actualArguCounter = 0;
+	
+	// the flag to check if there's a pair of squared-brackets after an identifier or not
+	int squaredFlag = 0;
+	
+	// the flag to check if the expression is the return value of a method or not
+	int returnFlag = 0;
 %}
 
 /* the union of different types */
 %union {
-	Tnode* tnode;
+	char c;
+	char s[2002];
+	int i;
+	int b;
+	double f;
 	DataType dataType;
 }
 
@@ -72,33 +97,31 @@
 %left '+' '-'
 %left '*' '/' MOD
 %nonassoc UMINUS
+%nonassoc ASSIGNMENT
+%nonassoc EXPR
 
-/* type definitions */
+/* type definitions for non-terminals */
 %type <dataType> data_type
 %type <dataType> opt_type_dclr
-%type <tnode> expr
 
 /* tokens */
 %token COMMA COLON PERIOD SEMICOLON
 %token OPEN_PAR CLOSE_PAR OPEN_SQB CLOSE_SQB OPEN_BRA CLOSE_BRA
-%token BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT NULLS OBJECT PRINT PRINTLN READ REPEAT RETURN STRING TO TRUE TYPE VAL VAR WHILE
-%token <tnode> ID
-%token <tnode> LITERAL_INTEGER
-%token <tnode> LITERAL_FLOAT
-%token <tnode> LITERAL_CHAR
-%token <tnode> LITERAL_STRING
+%token ARROW_IN_FOR BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT NULLS OBJECT PRINT PRINTLN READ REPEAT RETURN STRING TO TRUE TYPE VAL VAR WHILE
+%token <s> ID
+%token <c> LITERAL_CHAR
+%token <s> LITERAL_STRING
+%token <i> LITERAL_INTEGER
+%token <f> LITERAL_FLOAT
 
 %%
 
 /* the start symbol */
 program
-	: OBJECT new_symtab identifier { insertIntoHashTable(ident); } OPEN_BRA object_body CLOSE_BRA rem_symtab {
-		clear_stk(1);
-		clear_id_stk(1);
-	}
+	: OBJECT new_symtab identifier OPEN_BRA { insertIntoHashTable(ident, _object, _none); } object_body CLOSE_BRA rem_symtab
 	;
 
-/* the body of an object */
+/* the body of an object (an optional part + a method definition) */
 object_body
 	: object_body_first_part method_def
 	;
@@ -108,16 +131,24 @@ object_body_first_part
 	: object_body_first_part declaration
 	| object_body_first_part method_def
 	| %empty
+	;
 
-/* the definition of a method */
+/* the method definition */
 method_def
-	: DEF identifier {
-		// insert this method identifier into the symbol-table
-		insertIntoHashTable(ident);
-		// and set its item-type as a method
-		Item* item = lookupInHashTable(ident);
-		item->itemType = _method;
-	} OPEN_PAR new_symtab opt_formal_argus CLOSE_PAR opt_type_dclr OPEN_BRA def_body CLOSE_BRA rem_symtab
+	: DEF identifier OPEN_PAR {
+		// insert the method symbol into the currently-scoped hash-table
+		insertIntoHashTable(ident, _method, _none);
+		// temporally save the method-item
+		methItem = lookupInHashTable(ident);
+	} new_symtab opt_formal_argus CLOSE_PAR opt_type_dclr {
+		// set the return type to the currently-defining method
+		setReturnType(&(methItem->methDef), $8);
+	} OPEN_BRA def_body CLOSE_BRA {
+		// check the return type if hasn't do the checking yet
+		checkReturnType();
+		// nullify the pointer to the already-defined method
+		methItem = NULL;
+	} rem_symtab
 	;
 
 /* the optional formal arguments for a method definition */
@@ -132,15 +163,33 @@ more_formal_argus
 	| %empty
 	;
 
-/* a formal argument for a memory definition */
+/* a single formal argument for a memory definition */
 one_formal_argu
-	: identifier COLON data_type
+	: identifier COLON data_type {
+		// add a new formal argument into the currently-defining method
+		if (methItem != NULL)
+			addFormalArgu(&(methItem->methDef), ident, $3);
+		// also insert it into the currently-scoped hash-table
+		insertIntoHashTable(ident, _variable, $3);
+	}
 	;
 
 /* the body of a method definition */
 def_body
 	: def_body declaration
 	| def_body statement
+	| %empty
+	;
+
+/* the body of a block */
+block_body
+	: block_body_first_part statement
+	;
+
+/* the first part of the block body */
+block_body_first_part
+	: block_body_first_part declaration
+	| block_body_first_part statement
 	| %empty
 	;
 
@@ -166,15 +215,25 @@ dclr
 
 /* the declaration of a constant */
 val_dclr
-	: VAL identifier { storeAssigneeFromIdent(); } opt_type_dclr '=' expr { insertAndInitId(1, $4); }
+	: VAL identifier opt_type_dclr { setAssignee(); } '=' expr {
+		Enode* e = pop_e();
+		initNewId(assignee, _constant, $3, (e == NULL) ? _none : e->_type);
+		free_e(e);
+	}
 	;
 
 /* the declaration of a variable */
 var_dclr
-	// normal single variable, i.e., NOT array -> store the assignee temporally
-	: VAR identifier opt_type_dclr { storeAssigneeFromIdent(); } opt_init { insertAndInitId(0, $3); }
-	// array -> push the assignee (the identifier of this array) to the id-stack
-	| VAR identifier COLON data_type OPEN_SQB { push_id(ident); } expr CLOSE_SQB { insertArrayId($4); }
+	: VAR identifier opt_type_dclr { setAssignee(); } opt_init {
+		Enode* e = pop_e();
+		initNewId(assignee, _variable, $3, (e == NULL) ? _none : e->_type);
+		free_e(e);
+	}
+	| VAR identifier COLON data_type { setAssignee(); } OPEN_SQB expr CLOSE_SQB {
+		Enode* e = pop_e();
+		initNewId(assignee, _array, $4, (e == NULL) ? _none : e->_type);
+		free_e(e);
+	}
 	;
 
 /* the optional type declaration when declaring a variable/constant */
@@ -185,370 +244,181 @@ opt_type_dclr
 
 /* the optional initialization of a variable declaration */
 opt_init
-	: '=' expr
+	: '=' expr { /* pop'd */ }
 	| %empty
 	;
 
-/* the statement optionally followed by a semicolon */
+/* the statement:
+	1. a simple statement optionally followed by a semicolon
+	2. a block
+	3. IF
+	4. WHILE
+	5. FOR */
 statement
 	: stmt opt_semi
+	| OPEN_BRA new_symtab block_body CLOSE_BRA rem_symtab
+	| IF OPEN_PAR expr { checkBooleanExpr("IF"); } CLOSE_PAR statement opt_else
+	| WHILE OPEN_PAR expr { checkBooleanExpr("WHILE"); } CLOSE_PAR statement
+	| FOR OPEN_PAR identifier ARROW_IN_FOR expr { checkNumExpr(); } TO expr { checkNumExpr(); } CLOSE_PAR statement
 	;
 
-/* a single statement */
+opt_else
+	: ELSE statement
+	| %empty
+	;
+
+/* a single simple statement */
 stmt
-	: assignment
-	| expr
-	| func_invoc
-	| PRINT OPEN_PAR expr CLOSE_PAR { printOutExpr(0); }
-	| PRINTLN OPEN_PAR expr CLOSE_PAR { printOutExpr(1); }
-	| READ OPEN_PAR /* TODO */
+	: expr %prec EXPR { checkReturnType(); }
+	| assignment %prec ASSIGNMENT
+	| PRINT OPEN_PAR expr CLOSE_PAR { free_e(pop_e()); }
+	| PRINTLN OPEN_PAR expr CLOSE_PAR { free_e(pop_e()); }
+	| READ identifier { setAssignee(); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
+	| RETURN { returnFlag = 1; }
 	;
 
-/* the assignment */
+/* the assignment of a/an val/var/arr */
 assignment
-	: identifier opt_squared_brackets '=' expr {
-		// pop a Tnode from the stack
-		Tnode* nd = pop_stk();
-		
-		// there're 2 cases to get the item: from the id-stack & from the temporally-stored assignee
-		Item* item = NULL;
-		
-		// if the assignee is a position of an array
-		if (isAssineeArr) {
-			char* id = pop_id();
-			item = lookupInHashTable(id);
-			free(id);
-		}
-		// if the assignee is a single variable/constant
-		else
-			item = lookupInHashTable(assignee);
-		
-		// if no item found
-		if (item == NULL)
-			yywarning("Symbol Error. No such identifier in this scope found.");
-		// general case
+	: identifier opt_squared_brackets '=' { setAssignee(); checkUsageOfValVarArr(assignee, 1); } expr {
+		Enode* e = pop_e();
+		if (e == NULL)
+			warn("No assigned value found in an assignment.");
 		else {
-			// if the assignee is a position of an array
-			if (isAssineeArr) {
-				// the symbol is NOT an array but it is used as an array -> symbol error
-				if (item->itemType != _array) {
-					char msg[202];
-					sprintf(msg, "Symbol Error. The identifier \"%s\" is NOT an array, but you try to use it as it is.", item->name);
-					yywarning(msg);
-				}
-				// it actually IS an array
-				else {
-					// get the index
-					int idx = assigneeArrIdx;
-					
-					// if the index is out of range -> index error
-					if (idx < 0 || idx >= item->a_value->asize)
-						yywarning("Index Error. The index of the array is out of range.");
-					
-					// the index is NOT out of range
-					else {
-						// the types of lhs and rhs is NOT the same -> type error
-						if (item->a_value->_atype != nd->_type) {
-							char msg[2002];
-							sprintf(msg, "Type error. The LHS of the assignment is the type of \'%s\', while the RHS is \'%s\'.",
-								getLiteralDataTypeName(item->a_value->_atype),
-								getLiteralDataTypeName(nd->_type));
-							yywarning(msg);
-						
-							// float-to-int is still acceptable
-							if (item->a_value->_atype == _int && nd->_type == _float) {
-								item->a_value->_ai[idx] = (int) nd->_f;
-								item->a_value->hasAssigned[idx] = 1;
-							}
-							// int-to-float as well
-							else if (item->a_value->_atype == _float && nd->_type == _int) {
-								item->a_value->_af[idx] = (float) nd->_i;
-								item->a_value->hasAssigned[idx] = 1;
-							}
-						}
-						// no type errors
-						else {
-							// set the value of a certain position of this array
-							switch (nd->_type) {
-								case _char: item->a_value->_ac[idx] = nd->_c; break;
-								case _string:
-									if (item->a_value->_as[idx] != NULL)
-										free(item->a_value->_as[idx]);
-									item->a_value->_as[idx] = (char*)malloc(sizeof(char) * (strlen(nd->_s) + 1));
-									strcpy(item->a_value->_as[idx], nd->_s);
-									break;
-								case _int: item->a_value->_ai[idx] = nd->_i; break;
-								case _boolean: item->a_value->_ab[idx] = nd->_b; break;
-								case _float: item->a_value->_af[idx] = nd->_f; break;
-							}
-							
-							// set the flag that this position has been assigned
-							item->a_value->hasAssigned[idx] = 1;
-						}
-					}
-				}
-			}
-			// if the assignee is a single variable/constant
-			else {
-				// if the assignee is a variable
-				if (item->itemType == _variable) {
-					// the types of lhs and rhs is NOT the same -> type error
-					if (item->value->_type != _none && item->value->_type != nd->_type) {
-						char msg[2002];
-						sprintf(msg, "Type error. The LHS of the assignment is the type of \'%s\', while the RHS is \'%s\'.",
-							getLiteralDataTypeName(item->value->_type),
-							getLiteralDataTypeName(nd->_type));
-						yywarning(msg);
-						
-						// float-to-int is still acceptable
-						if (item->value->_type == _int && nd->_type == _float)
-							item->value->_i = (int) nd->_f;
-						// int-to-float as well
-						else if (item->value->_type == _float && nd->_type == _int)
-							item->value->_f = (float) nd->_i;
-					}
-					// no type errors
-					else {
-						// set the value of this variable
-						switch (nd->_type) {
-							case _char: item->value->_c = nd->_c; break;
-							case _string:
-								if (item->value->_s != NULL)
-									free(item->value->_s);
-								item->value->_s = (char*)malloc(sizeof(char) * (strlen(nd->_s) + 1));
-								strcpy(item->value->_s, nd->_s);
-								break;
-							case _int: item->value->_i = nd->_i; break;
-							case _boolean: item->value->_b = nd->_b; break;
-							case _float: item->value->_f = nd->_f; break;
-						}
-						
-						// set the item-type if it is still unknown
-						if (item->value->_type == _none)
-							item->value->_type = nd->_type;
-					}
-				}
-				
-				// if it's a constant -> symbol error (cannot re-assign a constant)
-				else if (item->itemType == _constant) {
-					char msg[202];
-					sprintf(msg, "Symbol Error. The identifier \"%s\" is a constant, which CANNOT be re-assigned.", item->name);
-					yywarning(msg);
-				}
-				
-				// if it's an array -> symbol error
-				else if (item->itemType == _array) {
-					char msg[202];
-					sprintf(msg, "Symbol Error. The identifier \"%s\" is an array. You cannot use it without applying the index.", item->name);
-					yywarning(msg);
-				}
-				
-				// neither a variable nor a constant -> symbol error
-				else {
-					char msg[202];
-					sprintf(msg, "Symbol Error. The identifier \"%s\" is neither a variable nor a constant.", item->name);
-					yywarning(msg);
-				}
+			Item* item = lookupInHashTable(assignee);
+			if (item) {
+				if (item->dataType == _none)
+					item->dataType = e->_type;
+				else if (item->dataType != e->_type)
+					fwarn("The types are NOT the same between LHS (%s) and RHS (%s) in an assignment.", toS(item->dataType), toS(e->_type), NULL, NULL, NULL);
 			}
 		}
+		free_e(e);
 	}
 	;
 
-/* optional squared brackets for the assignee */
+/* optional squared brackets for an identifier */
 opt_squared_brackets
-	: OPEN_SQB { push_id(ident); } expr CLOSE_SQB {
-		// set the flag to identify that the assignee is an array
-		isAssineeArr = 1;
-		
-		// pop a Tnode for attaining the index of the array
-		Tnode* ndForIdx = pop_stk();
-		
-		// the index expression yields NON-integer value -> type error
-		if (ndForIdx->_type != _int) {
-			assigneeArrIdx = (ndForIdx->_type == _float ? ((int) ndForIdx->_f) : 0);
-			yywarning("Type Error. The index of an array must be an INTEGER.");
-		}
-		// the index expression is exactly an integer value
-		else
-			assigneeArrIdx = ndForIdx->_i;
-	}
-	| %empty {
-		// set the flag to identify that the assignee is a single variable/constant (NOT an array)
-		isAssineeArr = 0;
-		
-		// pop the identifier since the pushing operation just done is redundant
-		//pop_id();
-		
-		// store the assignee through the temporally-stored ident
-		storeAssigneeFromIdent();
-	}
+	: OPEN_SQB expr CLOSE_SQB { squaredFlag = 1; }
+	| %empty { squaredFlag = 0; }
 	;
 
+/* the expression among literal values & identifiers (var/val/arr)
+   'doOP' means 'do the operation' */
 expr
 /* numeric expression */
-	: expr '+' expr { doOperation($$, "+", 1, 1); }
-	| expr '-' expr { doOperation($$, "-", 1, 1); }
-	| expr '*' expr { doOperation($$, "*", 1, 1); }
-	| expr '/' expr { doOperation($$, "/", 1, 1); }
-	| expr MOD expr { doOperation($$, "%", 1, 0); }
-	| '-' expr %prec UMINUS { doOperation($$, "UMINUS", 0, 1); }
-	| expr LT expr { doOperation($$, "<", 1, 1); }
-	| expr LE expr { doOperation($$, "<=", 1, 1); }
-	| expr GE expr { doOperation($$, ">=", 1, 1); }
-	| expr GT expr { doOperation($$, ">", 1, 1); }
-	| LITERAL_FLOAT { push_stk($1); }
-	| LITERAL_INTEGER { push_stk($1); }
+	: expr '+' expr { doOp("+", 1, warn); }
+	| expr '-' expr { doOp("-", 1, warn); }
+	| expr '*' expr { doOp("*", 1, warn); }
+	| expr '/' expr { doOp("/", 1, warn); }
+	| expr MOD expr { doOp("%", 1, warn); }
+	| '-' expr %prec UMINUS { doOp("UMINUS", 0, warn); }
+	| expr LT expr { doOp("<", 1, warn); }
+	| expr LE expr { doOp("<=", 1, warn); }
+	| expr GE expr { doOp(">=", 1, warn); }
+	| expr GT expr { doOp(">", 1, warn); }
+	| LITERAL_FLOAT { push_e(_float, &($1)); }
+	| LITERAL_INTEGER { push_e(_int, &($1)); }
 /* boolean expression */
-	| NOT expr { doOperation($$, "!", 0, 0); }
-	| expr OR expr { doOperation($$, "||", 1, 0); }
-	| expr AND expr { doOperation($$, "&&", 1, 0); }
-	| TRUE { $$->_type = _boolean; $$->_b = 1; push_stk($$); }
-	| FALSE { $$->_type = _boolean; $$->_b = 0; push_stk($$); }
+	| NOT expr { doOp("!", 0, warn); }
+	| expr OR expr { doOp("||", 1, warn); }
+	| expr AND expr { doOp("&&", 1, warn); }
+	| TRUE { int t = 1; push_e(_boolean, &t); }
+	| FALSE { int f = 0; push_e(_boolean, &f); }
 /* general expression, i.e., equal-to & not-equal-to */
-	| expr EQ expr { doOperation($$, "==", 1, 0); }
-	| expr NE expr { doOperation($$, "!=", 1, 0); }
+	| expr EQ expr { doOp("==", 1, warn); }
+	| expr NE expr { doOp("!=", 1, warn); }
 /* character expression */
-	| LITERAL_CHAR { push_stk($1); }
+	| LITERAL_CHAR { push_e(_char, &($1)); }
 /* string expression */
-	| LITERAL_STRING { push_stk($1); }
-/* identifier, including variable, constant, & array */
-	| identifier { push_id(ident); } OPEN_SQB expr CLOSE_SQB {
-		// get the identifier from the top of the id-stack
-		char* id = pop_id();
-	
-		// search for the identifier
-		Item* item = lookupInHashTable(id);
-		
-		// no identifier found -> symbol error
-		if (item == NULL)
-			yywarning("Symbol Error. No such array identifier found.");
-		// normal case
-		else {
-			// this item is a single value, i.e., a variable or a constant -> symbol error
-			if (item->itemType == _variable || item->itemType == _constant) {
-				char msg[202];
-				sprintf(msg, "The identifier \"%s\" is NOT an array.", id);
-				yywarning(msg);
-			}
-			
-			// is an array
-			else if (item->itemType == _array) {
-				// no value assigned -> symbol error
-				if (item->a_value == NULL)
-					yywarning("Symbol Error. The array has NOT been initialized.");
-				// has value assigned -> create a new Tnode for the indexed data and push it into the stack
-				else {
-					// pop a Tnode for attaining the index of the array
-					Tnode* ndForIdx = pop_stk();
-					int idx = 0;
-					
-					// the index expression yields NON-integer value -> type error
-					if (ndForIdx->_type != _int)
-						yywarning("Type Error. The index of an array must be an INTEGER.");
-					
-					// the index expression is exactly an integer value
-					else {
-						// get the index
-						idx = ndForIdx->_i;
-						
-						// if the index is out of range -> index error
-						if (idx < 0 || idx >= item->a_value->asize)
-							yywarning("Index Error. The index of the array is out of range.");
-						
-						// the index is NOT out of range
-						else {
-							// if the position of this array has NOT been assigned by any value -> value error
-							if (item->a_value->hasAssigned[idx] == 0)
-								yywarning("Value Error. The position of the array has NOT been assigned by any value.");
-							
-							// create a new Tnode for attaining the indexed data
-							else {
-								Tnode* newNd = (Tnode*)malloc(sizeof(Tnode));
-								newNd->_s = NULL;
-								newNd->_type = item->a_value->_atype;
-								switch (newNd->_type) {
-									case _char: newNd->_c = item->a_value->_ac[idx]; break;
-									case _string:
-										newNd->_s = (char*)malloc(sizeof(char*) * (strlen(item->a_value->_as[idx]) + 1));
-										strcpy(newNd->_s, item->a_value->_as[idx]);
-										break;
-									case _int: newNd->_i = item->a_value->_ai[idx]; break;
-									case _boolean: newNd->_b = item->a_value->_ab[idx]; break;
-									case _float: newNd->_f = item->a_value->_af[idx]; break;
-								}
-								push_stk(newNd);
-							}
-						}
-					}
-				}
-			}
-			
-			// not variable/constant nor array -> symbol error
-			else
-				yywarning("This identifier is NOT a variable/constant nor an array.");
-		}
-		
-		// free the pop'd identifier
-		free(id);
-	}
-	| identifier {
-		// search for the identifier
+	| LITERAL_STRING { char* s = (char*)malloc(sizeof(char) * (strlen($1) + 1)); strcpy(s, $1); push_e(_string, &s); free(s); }
+/* identifier, including variable/constant and array */
+	| identifier opt_squared_brackets {
+		// get the identifier stored in the currently-scoped hash-table
 		Item* item = lookupInHashTable(ident);
-		
-		// no identifier found -> symbol error
-		if (item == NULL)
-			yywarning("Symbol Error. No such variable/constant found.");
-		
-		// normal case
-		else {
-			// this item is a single value, i.e., a variable or a constant
-			if (item->itemType == _variable || item->itemType == _constant) {
-				// no value assigned -> symbol error
-				if (item->value == NULL)
-					yywarning("Symbol Error. The variable/constant has NOT been initialized.");
-				// has value assigned -> push the Tnode into the stack
-				else
-					push_stk(item->value);
-			}
-			
-			// is an array -> symbol error
-			else if (item->itemType == _array)
-				yywarning("Symbol Error. You cannot use array without applying the index.");
-			
-			// not variable/constant nor array -> symbol error
-			else
-				yywarning("This identifier is NOT a variable/constant nor an array.");
-		}
+		// check if the identifier is used correctly or not
+		checkUsageOfValVarArr(ident, 0);
+		// push the data-type back into the expr-stack
+		push_e((item == NULL) ? _none : item->dataType, NULL);
 	}
-/* an expression which is wrapped by a pair of parentheses */
+/* an expression which is wrapped by a pair of parentheses -> do nothing */
 	| OPEN_PAR expr CLOSE_PAR
+/* the function invocation */
+	| func_invoc {
+		// push an Enode according to the return type of this invocated function
+		push_e((methItem == NULL || methItem->methDef == NULL) ? _none : methItem->methDef->_ret_type, NULL);
+		// nullify the pointer to the method item
+		methItem = NULL;
+	}
+	;
 
 /* the function invocation */
 func_invoc
-	: identifier OPEN_PAR actual_argus CLOSE_PAR
-	| identifier OPEN_PAR CLOSE_PAR
+	: identifier OPEN_PAR {
+		// set the counter of actual arguments to zero
+		actualArguCounter = 0;
+		// get the name of the defined method in the hash-table
+		methItem = lookupInHashTable(ident);
+		// not found
+		if (methItem == NULL)
+			fwarn("The identifier \"%s\" does NOT exist.", ident, NULL, NULL, NULL, NULL);
+		// found but the identifier is NOT a method
+		else if (methItem->itemType != _method) {
+			methItem = NULL;
+			fwarn("The identifier \"%s\" is NOT a method.", ident, NULL, NULL, NULL, NULL);
+		}
+	} opt_actual_argus CLOSE_PAR {
+		// if the number of actual arguments are NOT enough according to the defined formal arguments
+		if (actualArguCounter < methItem->methDef->argc)
+			fwarn("The argument(s) are NOT enough when invocating the method \"%s\".", methItem->name, NULL, NULL, NULL, NULL);
+		// reset the counter for actual arguments
+		actualArguCounter = 0;
+	}
 	;
 
-/* the actual arguments in a function invocation */
-actual_argus
-	: actual_argus COMMA expr
-	| expr
-	;
-
-/* the optimal semicolon */
-opt_semi
-	: SEMICOLON
+/* the optional actual arguments in a function invocation */
+opt_actual_argus
+	: one_actual_argu more_actual_argu
 	| %empty
 	;
 
-/* the identifier (for temporally storing it) */
+/* more actual arguments in a function invocation */
+more_actual_argu
+	: COMMA one_actual_argu more_actual_argu
+	| %empty
+	;
+
+/* a single actual argument in a function invocation */
+one_actual_argu
+	: expr {
+		Enode* nd = pop_e();
+		// check this actual argument with the formal argument
+		if (methItem != NULL) {
+			int res = checkFormalArguType(methItem->methDef, (nd == NULL ? _none : nd->_type), actualArguCounter);
+			if (res == -1)
+				fwarn("Too much argument(s) when invocating the method \"%s\".", methItem->name, NULL, NULL, NULL, NULL);
+			else if (res == 0)
+				fwarn("Types are NOT matched when invocating the method \"%s\".", methItem->name, NULL, NULL, NULL, NULL);
+		}
+		free_e(nd);
+		++actualArguCounter;
+	}
+	;
+
+/* the optional semicolon */
+opt_semi
+	: SEMICOLON { checkReturnType(); }
+	| %empty
+	;
+
+/* the identifier (for temorally storing it) */
 identifier
 	: ID {
+		// store it in a global variable 'ident'
 		if (ident != NULL)
 			free(ident);
-		ident = (char*)malloc(sizeof(char) * (strlen($1->_s) + 1));
+		ident = (char*)malloc(sizeof(char) * (strlen($1) + 1));
 		ident[0] = 0;
-		strcpy(ident, $1->_s);
+		strcpy(ident, $1);
 	}
 	;
 
@@ -562,17 +432,23 @@ rem_symtab
 
 %%
 
-// error happens -> tell the user and exit
-/*void yyerror(const char* msg) {
-	extern int yylineno;
-	fprintf(stderr, "line %d: %s\n", yylineno, msg);
-}*/
-
 // warning happens -> just tell the user
-int yywarning(const char* msg) {
+int warn(const char* msg) {
+	// get the line number
 	extern int yylineno;
+	// print the warning message out
 	fprintf(stderr, "line %d: %s\n", yylineno, msg);
 	return 0;
+}
+
+// construct the warning message and print it out to warn the user (f stands for formatted)
+int fwarn(const char* msgBody, const char* p0, const char* p1, const char* p2, const char* p3, const char* p4) {
+	// the buffer for storing the warning message
+	char msg[20002];
+	// build up the warning message
+	sprintf(msg, msgBody, (p0 == NULL ? "" : p0), (p1 == NULL ? "" : p1), (p2 == NULL ? "" : p2), (p3 == NULL ? "" : p3), (p4 == NULL ? "" : p4));
+	// call the 'warn' function to print it out
+	return warn(msg);
 }
 
 // the main function
@@ -586,19 +462,17 @@ void appendHashTable() {
 	// create a new hnode for storing the latest hash-table
 	Hnode* newNode = (Hnode*)malloc(sizeof(Hnode));
 	newNode->table = create();
-	newNode->next = NULL;
 	newNode->prev = NULL;
 
 	// the first node
 	if (hhead == NULL) {
 		hhead = newNode;
-		htail  = hhead;
+		htail = hhead;
 	}
 	// general case
 	else {
-		htail->next = newNode;
 		newNode->prev = htail;
-		htail = htail->next;
+		htail = newNode;
 	}
 }
 
@@ -614,18 +488,40 @@ void removeHashTable() {
 	// update the htail pointer
 	Hnode* p = htail;
 	htail = htail->prev;
-	htail->next = NULL;
+	
+	// free the Hnode pointer that just been removed
 	free(p);
 }
 
-// insert an identifier into the hash-table for the current scope
-int insertIntoHashTable(const char* name) {
+// insert an identifier into the hash-table for the current scope with optionally-passed item-type and data-type
+int insertIntoHashTable(const char* name, ItemType itemType, DataType dataType) {
 	// first, check if the htail (the latest hash-table) is NULL or not
 	if (htail == NULL)
-		yywarning("Syntax error. You cannot assign variables here.");
+		warn("Syntax error. You cannot assign variables here.");
 	
-	// insert into the latest hash-table
-	return insert(htail->table, name);
+	// try to insert the symbol into the latest hash-table
+	int insertionResult = insert(htail->table, name);
+	
+	// insertion failed: the identifier has already been declared in the current scope
+	if (insertionResult == -1) {
+		fwarn("The identifier \"%s\" has already been declared in the current scope.", name, NULL, NULL, NULL, NULL);
+		return -1;
+	}
+	
+	// get the just-inserted symbol
+	Item* item = lookupInHashTable(name);
+	if (item != NULL) {
+		// set the item-type if needs
+		item->itemType = itemType;
+		
+		// set the data-type if needs
+		item->dataType = dataType;
+	}
+	
+	printf("ID:|%s|%d|%s|\n", item->name, item->itemType, toS(item->dataType));
+	
+	// return the result of insertion
+	return insertionResult;
 }
 
 // search for a certain identifier in the latest hash-table
@@ -643,457 +539,183 @@ Item* lookupInHashTable(const char* name) {
 	return NULL;
 }
 
-// in a certain unary operation, check if the type of the operand are compatible with this operation or not
-int doOperation(Tnode* res, char* operationName, int isBinaryOperation, int isNumericOperation) {
-	// first of all, nullify the string field of the result Tnode
-	res->_s = NULL;
-	
-	// get an operand from the stack
-	Tnode* rhs = pop_stk();
-	Tnode* lhs = NULL;
-	
-	// if it's a binary operation, get another operand from the stack
-	if (isBinaryOperation)
-		lhs = pop_stk();
-	
-	// if the operand is NOT enough in the stack
-	if (rhs == NULL || (isBinaryOperation && lhs == NULL)) {
-		char msg[20002];
-		sprintf(msg, "Operation error. The number of operand(s) in the operation \"%s\" is NOT enough.", operationName);
-		yywarning(msg);
-		return 0;
-	}
-	
-	// the flag to check if the rhs is compatible or not
-	int compatible = 0;
-	
-	// the true data type
-	DataType trueDataType = _int;
-	DataType resDataType = _int;
-	
-	// for BINARY numeric operations, check the loosen compatibility, i.e., ok for an INT and a FLOAT but a warning still is a must
-	if (isBinaryOperation && isNumericOperation &&
-		(lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float) &&
-		lhs->_type != rhs->_type) {
-		char msg[20002];
-		sprintf(msg, "Type warning. The operands of the numeric operation \"%s\" is NOT the same type.", operationName);
-		yywarning(msg);
-	}
-	
-	// BINARY numeric: ADD
-	if (!strcmp(operationName, "+")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		trueDataType = ((lhs->_type == _int && rhs->_type == _int) ? _int : _float);
-		if (trueDataType == _int)
-			res->_i = lhs->_i + rhs->_i;
-		else
-			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) + (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
-		res->_type = trueDataType;
-	}
-	// BINARY numeric: MINUS
-	else if (!strcmp(operationName, "-")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		trueDataType = ((lhs->_type == _int && rhs->_type == _int) ? _int : _float);
-		if (trueDataType == _int)
-			res->_i = lhs->_i - rhs->_i;
-		else
-			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) - (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
-		res->_type = trueDataType;
-	}
-	// BINARY numeric: MULTIPLY
-	else if (!strcmp(operationName, "*")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		trueDataType = ((lhs->_type == _int && rhs->_type == _int) ? _int : _float);
-		if (trueDataType == _int)
-			res->_i = lhs->_i * rhs->_i;
-		else
-			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) * (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
-		res->_type = trueDataType;
-	}
-	// BINARY numeric: DIVIDE
-	else if (!strcmp(operationName, "/")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		double rhsValue = (rhs->_type == _int ? ((double) rhs->_i) : rhs->_f);
-		if (rhsValue == 0) {
-			if (compatible)
-				yywarning("Divide by zero in a DIVISION operation.");
-			rhsValue += 1E-10;
-		}
-		if (lhs->_type == _int && rhs->_type == _int) {
-			trueDataType = _int;
-			res->_i = (int) (lhs->_i / rhsValue);
-			res->_type = _int;
-		}
+
+
+
+// initialize the new identifier and insert it into the currently-scoped hash-table
+int initNewId(const char* name, ItemType itemType, DataType declaredDataType, DataType assignedDataType) {
+	// if the passed item is a variable
+	if (itemType == _variable) {
+		// no declared & assigned data-types
+		if (declaredDataType == _none && assignedDataType == _none)
+			return insertIntoHashTable(name, _variable, _none);
+		
+		// there's only assigned data-type
+		else if (declaredDataType == _none)
+			return insertIntoHashTable(name, _variable, assignedDataType);
+		
+		// there's only declared data-type
+		else if (assignedDataType == _none)
+			return insertIntoHashTable(name, _variable, declaredDataType);
+		
+		// both declared & assigned data-types
 		else {
-			trueDataType = _float;
-			res->_f = (lhs->_type == _int ? ((double) lhs->_i) : lhs->_f) / rhsValue;
-			res->_type = _float;
+			// if the explicitly-declared & assigned data-types are NOT matched -> warning
+			if (declaredDataType != assignedDataType)
+				fwarn("The declared type (%s) and the assigned type (%s) are NOT matched when declaring the variable \"%s\".", toS(declaredDataType), toS(assignedDataType), name, NULL, NULL);
+			
+			// the tie is broken in favor of the explicitly-declared data-type
+			return insertIntoHashTable(name, _variable, declaredDataType);
 		}
 	}
-	// BINARY int: MOD
-	else if (!strcmp(operationName, "%")) {
-		compatible = (lhs->_type == _int && rhs->_type == _int);
-		trueDataType = _int;
-		int lhsValue = (lhs->_type == _int ? lhs->_i : ((int) lhs->_f));
-		int rhsValue = (rhs->_type == _int ? rhs->_i : ((int) rhs->_f));
-		if (compatible && rhsValue == 0)
-			yywarning("Divide by zero in a MOD operation.");
-		if (rhsValue)
-			res->_i = lhsValue % rhsValue;
-		res->_type = _int;
-	}
-	// BINARY numeric: LT
-	else if (!strcmp(operationName, "<")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		trueDataType = _numeric;
-		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) < (rhs->_type == _int ? rhs->_i : rhs->_f));
-		res->_type = _boolean;
-	}
-	// BINARY numeric: LE
-	else if (!strcmp(operationName, "<=")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		trueDataType = _numeric;
-		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) <= (rhs->_type == _int ? rhs->_i : rhs->_f));
-		res->_type = _boolean;
-	}
-	// BINARY numeric: GE
-	else if (!strcmp(operationName, ">=")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		trueDataType = _numeric;
-		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) >= (rhs->_type == _int ? rhs->_i : rhs->_f));
-		res->_type = _boolean;
-	}
-	// BINARY numeric: GT
-	else if (!strcmp(operationName, ">")) {
-		compatible = ((lhs->_type == _int || lhs->_type == _float) && (rhs->_type == _int || rhs->_type == _float));
-		trueDataType = _numeric;
-		res->_b = ((lhs->_type == _int ? lhs->_i : lhs->_f) > (rhs->_type == _int ? rhs->_i : rhs->_f));
-		res->_type = _boolean;
-	}
-	// BINARY general: EQ or NE ("==" or "!=")
-	else if (!strcmp(operationName, "==") || !strcmp(operationName, "!=")) {
-		compatible = (lhs->_type == rhs->_type);
-		switch (lhs->_type) {
-			// BOOLEAN
-			case _boolean:
-				if (compatible == 0)
-					res->_b = 0;
-				else
-					res->_b = (operationName[0] == '=' ? (lhs->_b == rhs->_b) : (lhs->_b != rhs->_b));
-				break;
-			
-			// CHAR
-			case _char:
-				if (compatible == 0)
-					res->_b = 0;
-				else
-					res->_b = (operationName[0] == '=' ? (lhs->_c == rhs->_c) : (lhs->_c != rhs->_c));
-				break;
-			
-			// STRING
-			case _string:
-				if (compatible == 0 || lhs->_s == NULL || rhs->_s == NULL)
-					res->_b = 0;
-				else
-					res->_b = (operationName[0] == '=' ? (!strcmp(lhs->_s, rhs->_s)) : (strcmp(lhs->_s, rhs->_s) != 0));
-				break;
-			
-			// numeric, i.e., INT or FLOAT
-			default:
-				if (lhs->_type == _int) {
-					// INT and INT
-					if (rhs->_type == _int)
-						res->_b = (operationName[0] == '=' ? (lhs->_i == rhs->_i) : (lhs->_i != rhs->_i));
-					// INT and FLOAT
-					else if (rhs->_type == _float)
-						res->_b = (operationName[0] == '=' ? (lhs->_i == rhs->_f) : (lhs->_i != rhs->_f));
-					// INT and non-numeric
-					else
-						res->_b = 0;
-				}
-				else {
-					// FLOAT and INT
-					if (rhs->_type == _int)
-						res->_b = (operationName[0] == '=' ? (lhs->_f == rhs->_i) : (lhs->_f != rhs->_i));
-					// FLOAT and FLOAT
-					else if (rhs->_type == _float)
-						res->_b = (operationName[0] == '=' ? (lhs->_f == rhs->_f) : (lhs->_f != rhs->_f));
-					// FLOAT and non-numeric
-					else
-						res->_b = 0;
-				}
+	
+	// if the passed item is a constant
+	else if (itemType == _constant) {
+		// no declared & assigned data-types
+		if (declaredDataType == _none && assignedDataType == _none) {
+			warn("No declared & assigned data-type of a constant. The default type is INT.");
+			return insertIntoHashTable(name, _constant, _int);
 		}
-		res->_type = _boolean;
-	}
-	// UNARY numeric: UMINUS
-	else if (!strcmp(operationName, "UMINUS")) {
-		compatible = (rhs->_type == _int || rhs->_type == _float);
-		trueDataType = (rhs->_type == _int ? _int : _float);
-		if (rhs->_type == _int)
-			res->_i = (-(rhs->_i));
-		else
-			res->_f = (-(rhs->_f));
-		res->_type = trueDataType;
-	}
-	// UNARY boolean: NOT
-	else if (!strcmp(operationName, "!")) {
-		compatible = (rhs->_type == _boolean);
-		trueDataType = _boolean;
-		res->_b = (!(rhs->_b));
-		res->_type = _boolean;
-	}
-	// BINARY boolean: AND
-	else if (!strcmp(operationName, "&&")) {
-		compatible = (lhs->_type == _boolean && rhs->_type == _boolean);
-		trueDataType = _boolean;
-		res->_b = (lhs->_b && rhs->_b);
-		res->_type = _boolean;
-	}
-	// BINARY boolean: OR
-	else if (!strcmp(operationName, "||")) {
-		compatible = (lhs->_type == _boolean && rhs->_type == _boolean);
-		trueDataType = _boolean;
-		res->_b = (lhs->_b || rhs->_b);
-		res->_type = _boolean;
-	}
-	
-	// push the result back to the stack
-	push_stk(res);
-	
-	// loose the compatibility if it's a numeric operation and its result is a numeric value as well
-	if (isNumericOperation && (trueDataType == _int || trueDataType == _float))
-		trueDataType = _numeric;
-	
-	// if it's NOT compatible, build the error message and print it out
-	if (compatible == 0) {
-		char msg[20002];
-		// the operation is EQ or NE
-		if (!strcmp(operationName, "==") || !strcmp(operationName, "!="))
-			sprintf(msg, "Type warning. The both sides of \"%s\" operation should be the SAME type or the result could be unexpected.",
-				operationName);
-		// not EQ nor NE
+		
+		// there's only assigned data-type
+		else if (declaredDataType == _none)
+			return insertIntoHashTable(name, _constant, assignedDataType);
+		
+		// there's only declared data-type
+		else if (assignedDataType == _none) {
+			warn("There\'s no initially-assigned value of a constant\'s declaration.");
+			return insertIntoHashTable(name, _constant, declaredDataType);
+		}
+		
+		// both declared & assigned data-types
 		else {
-			// build the error message for this BINARY operation
-			if (isBinaryOperation)
-				sprintf(msg, "Type error. The BINARY operation \"%s\" is %s \'%s\' operation, but the operands are \'%s\' and \'%s\'.",
-					operationName,
-					(getLiteralDataTypeName(trueDataType)[0] == 'i' ? "an" : "a"),
-					getLiteralDataTypeName(trueDataType),
-					getLiteralDataTypeName(lhs->_type),
-					getLiteralDataTypeName(rhs->_type));
-			// the case of a UNARY operation
-			else
-				sprintf(msg, "Type error. The UNARY operation \"%s\" is %s \'%s\' operation, but the operand is \'%s\'.",
-					operationName,
-					(getLiteralDataTypeName(trueDataType)[0] == 'i' ? "an" : "a"),
-					getLiteralDataTypeName(trueDataType),
-					getLiteralDataTypeName(rhs->_type));
+			// if the explicitly-declared & assigned data-types are NOT matched -> warning
+			if (declaredDataType != assignedDataType)
+				fwarn("The declared type (%s) and the assigned type (%s) are NOT matched when declaring the constant \"%s\".", toS(declaredDataType), toS(assignedDataType), name, NULL, NULL);
+			
+			// the tie is broken in favor of the explicitly-declared data-type
+			return insertIntoHashTable(name, _constant, declaredDataType);
 		}
-		// print out the warning
-		yywarning(msg);
 	}
 	
-	// return that if the rhs is compatible or not
-	return compatible;
+	// if the passed item is an array
+	else if (itemType == _array) {
+		// no declared data-type
+		if (declaredDataType == _none)
+			warn("The declaration of the data-type for an array initialization is a must. The default type is INT.");
+		
+		// the given size of this array is NOT an INT type
+		if (assignedDataType != _int)
+			warn("The size of an array must be integer.");
+		
+		// insert into the currently-scoped hash-table
+		return insertIntoHashTable(name, _array, (declaredDataType == _none) ? _int : declaredDataType);
+	}
+	
+	// if the passed item is neither a variable/constant nor an array
+	else
+		return insertIntoHashTable(name, _none_item, _none);
 }
 
-// store the assignee (the identifier which is about to be assigned)
-void storeAssigneeFromIdent() {
-	// release the memory allocated before
+// check if the usage of a/an variable/constant/array is correct or not
+int checkUsageOfValVarArr(const char* symbol, int toBeAssignedFlag) {
+	// get the item from the currently-scoped hash-table
+	Item* item = lookupInHashTable(symbol);
+	
+	// get the expression as index if any
+	Enode* nd = NULL;
+	if (squaredFlag)
+		nd = pop_e();
+	
+	if (item == NULL)
+		fwarn("The identifier \"%s\" does NOT exist.", symbol, NULL, NULL, NULL, NULL);
+	else {
+		// there's a pair of squared-brackets
+		if (squaredFlag) {
+			if (item->itemType != _array)
+				fwarn("The identifier \"%s\" is NOT an array but you use it as it is.", symbol, NULL, NULL, NULL, NULL);
+			else {
+				if (nd == NULL)
+					fwarn("The identifier \"%s\" is an array but NO index found.", symbol, NULL, NULL, NULL, NULL);
+				else if (nd->_type != _int)
+					warn("The index of an array must be integer.");
+			}
+		}
+		// no squared-brackets
+		else {
+			if (item->itemType == _constant) {
+				if (toBeAssignedFlag)
+					fwarn("The identifier \"%s\" is a constant which CANNOT be re-assigned after initialized.", symbol, NULL, NULL, NULL, NULL);
+			}
+			else if (item->itemType == _array)
+				fwarn("The identifier \"%s\" is an array but NO index found.", symbol, NULL, NULL, NULL, NULL);
+			else if (item->itemType != _variable)
+				fwarn("The identifier \"%s\" is NOT a variable or a constant.", symbol, NULL, NULL, NULL, NULL);
+		}
+	}
+	
+	// free the pop'd Enode if needs
+	free_e(nd);
+}
+
+// set the assignee, i.e., the identifier which is about to be assigned
+void setAssignee() {
 	if (assignee != NULL)
 		free(assignee);
-	
-	// nullify the assignee
 	assignee = NULL;
-	
-	// re-assign the assignee from the temporally stored ident
-	if (ident != NULL) {
+	if (ident) {
 		assignee = (char*)malloc(sizeof(char) * (strlen(ident) + 1));
+		assignee[0] = 0;
 		strcpy(assignee, ident);
 	}
 }
 
-// insert a new variable/constant and do the initialization with the type checking
-int insertAndInitId(int isConstant, DataType declaredType) {
-	// get the assigned value (an expression) if any
-	Tnode* rhs = pop_stk();
-
-	// search for the identifier by the temporally stored assignee
-	int insertionRes = insertIntoHashTable(assignee);
-	
-	// if this assignee has already been declared in the same (current) scope
-	if (insertionRes == -1) {
-		char msg[2002];
-		sprintf(msg, "Symbol Error. The %s \'%s\' has already been declared in the same scope.",
-			(isConstant ? "constant" : "variable"), assignee);
-		yywarning(msg);
-		return 0;
-	}
-	
-	// get the item just inserted
-	Item* item = lookupInHashTable(assignee);
-	
-	// set the boolean flag that shows this assignee is a constant or a variable
-	if (isConstant)
-		item->itemType = _constant;
-	else
-		item->itemType = _variable;
-	
-	// allocate a new memory space of a Tnode
-	item->value = (Tnode*)malloc(sizeof(Tnode));
-	item->value->_s = NULL;
-	
-	// set the type of this item
-	item->value->_type = (declaredType == _none ? (rhs != NULL ? rhs->_type : _none) : declaredType);
-	
-	// if there's no assigned value, return directly
-	if (rhs == NULL)
-		return 1;
-	
-	// if the declared data type is NOT matched with the one of the assigned value -> type error
-	if (declaredType != _none && declaredType != rhs->_type) {
-		char msg[2002];
-		sprintf(msg, "Type Error. The %s \'%s\' is declared as the type of \'%s\', but the assigned value is the type of \'%s\'.",
-			(isConstant ? "constant" : "variable"),
-			assignee,
-			getLiteralDataTypeName(declaredType),
-			getLiteralDataTypeName(rhs->_type));
-		yywarning(msg);
-		return 0;
-	}
-	
-	// set its value according to the data type
-	switch(item->value->_type) {
-		case _char: item->value->_c = rhs->_c; break;
-		case _string:
-			item->value->_s = (char*)malloc(sizeof(char) * (strlen(rhs->_s) + 1));
-			strcpy(item->value->_s, rhs->_s);
-			break;
-		case _int: item->value->_i = rhs->_i; break;
-		case _boolean: item->value->_b = rhs->_b; break;
-		case _float: item->value->_f = rhs->_f; break;
-	}
-	
-	// return with the flag of success
-	return 1;
-}
-
-// insert a new array of some data type
-int insertArrayId(DataType declaredType) {
-	// pop an identifier from the id-stack
-	char* id = pop_id();
-	
-	// if there's no identifier in the id-stack -> symbol error
-	if (id == NULL) {
-		yywarning("Symbol Error. There\'s no identifier to be assigned.");
-		return 0;
-	}
-
-	// insert the pop'd identifier into the hash-table
-	int insertionRes = insertIntoHashTable(id);
-	
-	// if this identifier has already been declared in the same (current) scope
-	if (insertionRes == -1) {
-		char msg[2002];
-		sprintf(msg, "Symbol Error. The identifier \'%s\' has already been declared in the same scope.", id);
-		yywarning(msg);
-		free(id);
-		return 0;
-	}
-	
-	// get the item just inserted
-	Item* item = lookupInHashTable(id);
-	
-	// set the item-type
-	item->itemType = _array;
-	
-	// get the Tnode for determining the size of this array
-	Tnode* ndForSize = pop_stk();
-	
-	// if there's no declared size -> syntax error
-	if (ndForSize == NULL) {
-		yywarning("Syntax Error. The size of an array must be explicitly declared.");
-		free(id);
-		return 0;
-	}
-	
-	// the size of this array
-	int size = 1;
-	
-	// if the type of the Tnode-for-size is NOT an INT -> type error
-	if (ndForSize->_type != _int) {
-		yywarning("Type Error. The size of an array must be an INTEGER.");
-		free(id);
-		return 0;
-	}
-	
-	// determine the size of this array
-	else
-		size = ndForSize->_i;
-	
-	// if the size of the array is negative
-	if (size < 0) {
-		yywarning("Value Error. The size of an array must be non-negative.");
-		free(id);
-		return 0;
-	}
-	
-	// build a new Anode
-	Anode* anode = (Anode*)malloc(sizeof(Anode));
-	anode->_ac = NULL;
-	anode->_as = NULL;
-	anode->_ai = NULL;
-	anode->_ab = NULL;
-	anode->_af = NULL;
-	
-	// set the size into the new Anode
-	anode->asize = size;
-	
-	// set the type of the new Anode
-	anode->_atype = declaredType;
-	
-	// allocate the memory for the array according to the declared type
-	switch (declaredType) {
-		case _char: anode->_ac = (char*)malloc(sizeof(char) * size); break;
-		case _string: anode->_as = (char**)malloc(sizeof(char*) * size); break;
-		case _int: anode->_ai = (int*)malloc(sizeof(int) * size); break;
-		case _boolean: anode->_ab = (int*)malloc(sizeof(int) * size); break;
-		case _float: anode->_af = (double*)malloc(sizeof(double) * size); break;
-	}
-	
-	// set the has-assigned values to all false's
-	anode->hasAssigned = (int*)malloc(sizeof(int) * size);
-	int k;
-	for (k = 0; k < size; ++k)
-		anode->hasAssigned[k] = 0;
-	
-	// set the Anode as the a_value of the item
-	item->a_value = anode;
-	
-	// free the pop'd identifier
-	free(id);
-	
-	// return successfully
-	return 1;
-}
-
-// print out an expression at the top of the Tnode stack
-void printOutExpr(int shouldPutNewLine) {
-	// pop a Tnode from the stack to get the expression at the top
-	Tnode* nd = pop_stk();
-	
-	// if the pop'd Tnode is NOT NULL -> print the data out according to the data type
-	if (nd != NULL) {
-		switch (nd->_type) {
-			case _char: printf("%c", nd->_c); break;
-			case _string: printf("%s", nd->_s); break;
-			case _int: printf("%d", nd->_i); break;
-			case _boolean: printf("%s", (nd->_b ? "true" : "false")); break;
-			case _float: printf("%lf", nd->_f); break;
+// check the return type of a method when analyzing a RETURN statement
+int checkReturnType() {
+	Enode* e = pop_e();
+	if (returnFlag) {
+		if (methItem == NULL || methItem->methDef == NULL)
+			warn("No RETURN statement allowed outside the method.");
+		else {
+			if (methItem->methDef->_ret_type == _none) {
+				if (e != NULL && e->_type != _none)
+					fwarn("There\'s NO return type of the method \"%s\", but a type \'%s\' has been found inside this method.", methItem->name, toS(e->_type), NULL, NULL, NULL);
+			}
+			else if (e == NULL)
+				fwarn("The return type of the method \"%s\" is \'%s\', but there\'s a RETURN statement without any values.", methItem->name, toS(methItem->methDef->_ret_type), NULL, NULL, NULL);
+			else if (methItem->methDef->_ret_type != e->_type)
+				fwarn("The return type of the method \"%s\" is \'%s\', but a type \'%s\' has been found inside this method.", methItem->name, toS(methItem->methDef->_ret_type), toS(e->_type), NULL, NULL);
+			
 		}
 	}
+	returnFlag = 0;
+	free_e(e);
+}
 	
-	// put a new-line at the end of the output if needs
-	if (shouldPutNewLine)
-		printf("\n");
+// check if the expression is a boolean expression or not (for IF & WHILE statements)
+int checkBooleanExpr(const char* if_or_while) {
+	Enode* e = pop_e();
+	if (e == NULL) {
+		if (strcmp(if_or_while, "IF") == 0)
+			warn("No boolean expression of the conditional statement IF.");
+		else if (strcmp(if_or_while, "WHILE") == 0)
+			warn("No boolean expression of the loop statement WHILE.");
+	}
+	else if (e->_type != _boolean) {
+		if (strcmp(if_or_while, "IF") == 0)
+			warn("The expression of the conditional statement IF must be a boolean expression.");
+		else if (strcmp(if_or_while, "WHILE") == 0)
+			warn("The expression of the loop statement WHILE must be a boolean expression.");
+	}
+	free_e(e);
+}
+
+// check if the expression is a numeric (int & float) expression or not
+int checkNumExpr() {
+	Enode* e = pop_e();
+	if (e == NULL)
+		warn("There shall be a numeric expression but no found.");
+	else if (e->_type != _int && e->_type != _float)
+		fwarn("The expression here shall be numeric but the type of '%s' found.", toS(e->_type), NULL, NULL, NULL, NULL);
+	free_e(e);
 }
