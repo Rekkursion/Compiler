@@ -76,6 +76,10 @@
 	
 	// the flag to check if the expression is the return value of a method or not
 	int returnFlag = 0;
+	
+	// the flag to check if the expression is inside a PRINT or a PRINTLN command
+	/* 0 = NOT inside, 1 = in PRINT, 2 = in PRINTLN */
+	int printFlag = 0;
 %}
 
 /* the union of different types */
@@ -99,6 +103,8 @@
 %nonassoc UMINUS
 %nonassoc ASSIGNMENT
 %nonassoc EXPR
+%nonassoc STMT
+%nonassoc PRINT PRINTLN READ
 
 /* type definitions for non-terminals */
 %type <dataType> data_type
@@ -107,7 +113,7 @@
 /* tokens */
 %token COMMA COLON PERIOD SEMICOLON
 %token OPEN_PAR CLOSE_PAR OPEN_SQB CLOSE_SQB OPEN_BRA CLOSE_BRA
-%token ARROW_IN_FOR BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT NULLS OBJECT PRINT PRINTLN READ REPEAT RETURN STRING TO TRUE TYPE VAL VAR WHILE
+%token ARROW_IN_FOR BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT NULLS OBJECT REPEAT RETURN STRING TO TRUE TYPE VAL VAR WHILE
 %token <s> ID
 %token <c> LITERAL_CHAR
 %token <s> LITERAL_STRING
@@ -255,13 +261,16 @@ opt_init
 	4. WHILE
 	5. FOR */
 statement
-	: stmt opt_semi
+	: stmt opt_semi %prec STMT
 	| OPEN_BRA new_symtab block_body CLOSE_BRA rem_symtab
 	| IF OPEN_PAR expr { checkBooleanExpr("IF"); } CLOSE_PAR statement opt_else
 	| WHILE OPEN_PAR expr { checkBooleanExpr("WHILE"); } CLOSE_PAR statement
 	| FOR OPEN_PAR identifier ARROW_IN_FOR expr { checkNumExpr(); } TO expr { checkNumExpr(); } CLOSE_PAR statement
+	| PRINT expr opt_semi { printFlag = 1; returnFlag = 0; }
+	| PRINTLN expr opt_semi { printFlag = 2; returnFlag = 0; }
 	;
 
+/* the optional ELSE-clause which is preceded by an IF-clause */
 opt_else
 	: ELSE statement
 	| %empty
@@ -271,10 +280,8 @@ opt_else
 stmt
 	: expr %prec EXPR { checkReturnType(); }
 	| assignment %prec ASSIGNMENT
-	| PRINT OPEN_PAR expr CLOSE_PAR { free_e(pop_e()); }
-	| PRINTLN OPEN_PAR expr CLOSE_PAR { free_e(pop_e()); }
 	| READ identifier { setAssignee(); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
-	| RETURN { returnFlag = 1; }
+	| RETURN { returnFlag = 1; printFlag = 0; }
 	;
 
 /* the assignment of a/an val/var/arr */
@@ -400,6 +407,7 @@ one_actual_argu
 				fwarn("Types are NOT matched when invocating the method \"%s\".", methItem->name, NULL, NULL, NULL, NULL);
 		}
 		free_e(nd);
+		// count the number of actual arguments
 		++actualArguCounter;
 	}
 	;
@@ -453,6 +461,7 @@ int fwarn(const char* msgBody, const char* p0, const char* p1, const char* p2, c
 
 // the main function
 int main() {
+	// start parsing
 	yyparse();
 	return 0;
 }
@@ -518,7 +527,7 @@ int insertIntoHashTable(const char* name, ItemType itemType, DataType dataType) 
 		item->dataType = dataType;
 	}
 	
-	printf("ID:|%s|%d|%s|\n", item->name, item->itemType, toS(item->dataType));
+	//printf("ID:|%s|%d|%s|\n", item->name, item->itemType, toS(item->dataType));
 	
 	// return the result of insertion
 	return insertionResult;
@@ -660,9 +669,14 @@ int checkUsageOfValVarArr(const char* symbol, int toBeAssignedFlag) {
 
 // set the assignee, i.e., the identifier which is about to be assigned
 void setAssignee() {
+	// free the assignee if needs
 	if (assignee != NULL)
 		free(assignee);
+	
+	// nullify it
 	assignee = NULL;
+	
+	// re-assign the value through the temporally-saved variable 'ident' if any
 	if (ident) {
 		assignee = (char*)malloc(sizeof(char) * (strlen(ident) + 1));
 		assignee[0] = 0;
@@ -672,50 +686,79 @@ void setAssignee() {
 
 // check the return type of a method when analyzing a RETURN statement
 int checkReturnType() {
+	// pop an Enode as the return value
 	Enode* e = pop_e();
+	
+	// if the return-falg is ON
 	if (returnFlag) {
+		// outside the method -> error
 		if (methItem == NULL || methItem->methDef == NULL)
 			warn("No RETURN statement allowed outside the method.");
+		
+		// general case
 		else {
+			// the method prototype says that this method does NOT have any return type
 			if (methItem->methDef->_ret_type == _none) {
+				// but there's one -> warning
 				if (e != NULL && e->_type != _none)
 					fwarn("There\'s NO return type of the method \"%s\", but a type \'%s\' has been found inside this method.", methItem->name, toS(e->_type), NULL, NULL, NULL);
 			}
+			
+			// this method has a return type but NOTHING found after a RETURN keyword
 			else if (e == NULL)
 				fwarn("The return type of the method \"%s\" is \'%s\', but there\'s a RETURN statement without any values.", methItem->name, toS(methItem->methDef->_ret_type), NULL, NULL, NULL);
+			
+			// types between method prototype and actual return-type are NOT the same
 			else if (methItem->methDef->_ret_type != e->_type)
 				fwarn("The return type of the method \"%s\" is \'%s\', but a type \'%s\' has been found inside this method.", methItem->name, toS(methItem->methDef->_ret_type), toS(e->_type), NULL, NULL);
 			
 		}
 	}
+	
+	// reset the flags
+	printFlag = 0;
 	returnFlag = 0;
+	
+	// free the pop'd Enode
 	free_e(e);
 }
 	
 // check if the expression is a boolean expression or not (for IF & WHILE statements)
 int checkBooleanExpr(const char* if_or_while) {
+	// pop an Enode that is about to be checked
 	Enode* e = pop_e();
+	
+	// if the expr-stack is empty -> expression-lacking error
 	if (e == NULL) {
 		if (strcmp(if_or_while, "IF") == 0)
 			warn("No boolean expression of the conditional statement IF.");
 		else if (strcmp(if_or_while, "WHILE") == 0)
 			warn("No boolean expression of the loop statement WHILE.");
 	}
+	// the type of the pop'd expression must be a BOOLEAN type in either IF-clause or WHILE-clause
 	else if (e->_type != _boolean) {
 		if (strcmp(if_or_while, "IF") == 0)
 			warn("The expression of the conditional statement IF must be a boolean expression.");
 		else if (strcmp(if_or_while, "WHILE") == 0)
 			warn("The expression of the loop statement WHILE must be a boolean expression.");
 	}
+	
+	// free the pop'd Enode
 	free_e(e);
 }
 
 // check if the expression is a numeric (int & float) expression or not
 int checkNumExpr() {
+	// pop an Enode that is about to be checked
 	Enode* e = pop_e();
+	
+	// if the expr-stack is empty -> expression-lacking error
 	if (e == NULL)
 		warn("There shall be a numeric expression but no found.");
+	// the type of the pop'd expression must be a numeric type, i.e., an INT or a FLOAT
 	else if (e->_type != _int && e->_type != _float)
 		fwarn("The expression here shall be numeric but the type of '%s' found.", toS(e->_type), NULL, NULL, NULL, NULL);
+	
+	// free the pop'd Enode
 	free_e(e);
 }
