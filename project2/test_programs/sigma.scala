@@ -8,7 +8,7 @@ object Sigma
   // constants and variables
   val n = 10
   var sum: int
-  var index: int = 0
+  var index: int
 
   def main () {
     sum = 0
@@ -18,14 +18,7 @@ object Sigma
       sum = sum + index
       index = index + 1
     }
-    print "The sum is "
-    println sum
-	sum
-	sum
-	sum
-	sum
-	sum
-	sum = sum[2]
-	
+    print ("The sum is ")
+    println (sum)
   }
 }

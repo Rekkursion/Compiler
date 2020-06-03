@@ -1,9 +1,13 @@
 %{
 	#include <stdio.h>
-	#include "symbol_table.hpp"
 	#include "e_stack.hpp"
 	#include "v_stack.hpp"
+	#include "m_stack.hpp"
 	
+	#ifndef _SYMBOL_TABLE
+	#include "symbol_table.hpp"
+	#define _SYMBOL_TABLE
+	#endif
 	
 	// a node of a single hash-table
 	typedef struct hnode {
@@ -68,9 +72,6 @@
 	// the temporally-saved the method when defining one
 	Item* methItem = NULL;
 	
-	// the counter of actual arguments when invocating a certain method
-	int actualArguCounter = 0;
-	
 	// the flag to check if there's a pair of squared-brackets after an identifier or not
 	int squaredFlag = 0;
 	
@@ -80,6 +81,9 @@
 	// the flag to check if the expression is inside a PRINT or a PRINTLN command
 	/* 0 = NOT inside, 1 = in PRINT, 2 = in PRINTLN */
 	int printFlag = 0;
+	
+	// the flag to check if there's a method named "main" or not
+	int hasMainFlag = 0;
 %}
 
 /* the union of different types */
@@ -105,6 +109,8 @@
 %nonassoc EXPR
 %nonassoc STMT
 %nonassoc PRINT PRINTLN READ
+%nonassoc RETURN
+%nonassoc RETURN_W_EXPR
 
 /* type definitions for non-terminals */
 %type <dataType> data_type
@@ -113,7 +119,7 @@
 /* tokens */
 %token COMMA COLON PERIOD SEMICOLON
 %token OPEN_PAR CLOSE_PAR OPEN_SQB CLOSE_SQB OPEN_BRA CLOSE_BRA
-%token ARROW_IN_FOR BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT NULLS OBJECT REPEAT RETURN STRING TO TRUE TYPE VAL VAR WHILE
+%token ARROW_IN_FOR BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT NULLS OBJECT REPEAT STRING TO TRUE TYPE VAL VAR WHILE
 %token <s> ID
 %token <c> LITERAL_CHAR
 %token <s> LITERAL_STRING
@@ -124,7 +130,11 @@
 
 /* the start symbol */
 program
-	: OBJECT new_symtab identifier OPEN_BRA { insertIntoHashTable(ident, _object, _none); } object_body CLOSE_BRA rem_symtab
+	: OBJECT new_symtab identifier OPEN_BRA { insertIntoHashTable(ident, _object, _none); } object_body CLOSE_BRA rem_symtab {
+		// check if there's a method named "main" or not, if there's NO -> semantics error
+		if (hasMainFlag == 0)
+			warn("No \"main\" method found, but there must be one.");
+	}
 	;
 
 /* the body of an object (an optional part + a method definition) */
@@ -146,6 +156,9 @@ method_def
 		insertIntoHashTable(ident, _method, _none);
 		// temporally save the method-item
 		methItem = lookupInHashTable(ident);
+		// check if this method is named "main" or not and set the flag of has-main
+		if (strcmp(ident, "main") == 0)
+			hasMainFlag = 1;
 	} new_symtab opt_formal_argus CLOSE_PAR opt_type_dclr {
 		// set the return type to the currently-defining method
 		setReturnType(&(methItem->methDef), $8);
@@ -261,7 +274,7 @@ opt_init
 	4. WHILE
 	5. FOR */
 statement
-	: stmt opt_semi %prec STMT
+	: stmt opt_semi %prec STMT { clear_e(); }
 	| OPEN_BRA new_symtab block_body CLOSE_BRA rem_symtab
 	| IF OPEN_PAR expr { checkBooleanExpr("IF"); } CLOSE_PAR statement opt_else
 	| WHILE OPEN_PAR expr { checkBooleanExpr("WHILE"); } CLOSE_PAR statement
@@ -280,8 +293,9 @@ opt_else
 stmt
 	: expr %prec EXPR { checkReturnType(); }
 	| assignment %prec ASSIGNMENT
-	| READ identifier { setAssignee(); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
-	| RETURN { returnFlag = 1; printFlag = 0; }
+	| READ { clear_e(); } identifier { setAssignee(); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
+	| RETURN expr %prec RETURN_W_EXPR { returnFlag = 1; printFlag = 0; checkReturnType(); }
+	| RETURN { clear_e(); returnFlag = 1; printFlag = 0; checkReturnType(); }
 	;
 
 /* the assignment of a/an val/var/arr */
@@ -351,34 +365,39 @@ expr
 	| OPEN_PAR expr CLOSE_PAR
 /* the function invocation */
 	| func_invoc {
+		Mnode* m_nd = pop_m();
+		Item* mItem = NULL;
+		if (m_nd != NULL && m_nd->name != NULL)
+			mItem = lookupInHashTable(m_nd->name);
 		// push an Enode according to the return type of this invocated function
-		push_e((methItem == NULL || methItem->methDef == NULL) ? _none : methItem->methDef->_ret_type, NULL);
-		// nullify the pointer to the method item
-		methItem = NULL;
+		push_e((mItem == NULL || mItem->methDef == NULL) ? _none : mItem->methDef->_ret_type, NULL);
+		free_m(m_nd);
 	}
 	;
 
 /* the function invocation */
 func_invoc
 	: identifier OPEN_PAR {
-		// set the counter of actual arguments to zero
-		actualArguCounter = 0;
-		// get the name of the defined method in the hash-table
-		methItem = lookupInHashTable(ident);
+		Item* mItem = lookupInHashTable(ident);
+		push_m(ident);
 		// not found
-		if (methItem == NULL)
+		if (mItem == NULL)
 			fwarn("The identifier \"%s\" does NOT exist.", ident, NULL, NULL, NULL, NULL);
 		// found but the identifier is NOT a method
-		else if (methItem->itemType != _method) {
-			methItem = NULL;
+		else if (mItem->itemType != _method) {
+			mItem = NULL;
 			fwarn("The identifier \"%s\" is NOT a method.", ident, NULL, NULL, NULL, NULL);
 		}
 	} opt_actual_argus CLOSE_PAR {
-		// if the number of actual arguments are NOT enough according to the defined formal arguments
-		if (actualArguCounter < methItem->methDef->argc)
-			fwarn("The argument(s) are NOT enough when invocating the method \"%s\".", methItem->name, NULL, NULL, NULL, NULL);
-		// reset the counter for actual arguments
-		actualArguCounter = 0;
+		Mnode* meth_nd = peek_m();
+		Item* mItem = NULL;
+		if (meth_nd != NULL && meth_nd->name != NULL)
+			mItem = lookupInHashTable(meth_nd->name);
+		if (mItem != NULL && mItem->itemType == _method) {
+			// if the number of actual arguments are NOT enough according to the defined formal arguments
+			if (meth_nd->argCounter < mItem->methDef->argc)
+				fwarn("The argument(s) are NOT enough when invocating the method \"%s\".", mItem->name, NULL, NULL, NULL, NULL);
+		}
 	}
 	;
 
@@ -398,17 +417,21 @@ more_actual_argu
 one_actual_argu
 	: expr {
 		Enode* nd = pop_e();
+		Mnode* m_nd = peek_m();
+		Item* mItem = NULL;
+		if (m_nd != NULL && m_nd->name != NULL)
+			mItem = lookupInHashTable(m_nd->name);
 		// check this actual argument with the formal argument
-		if (methItem != NULL) {
-			int res = checkFormalArguType(methItem->methDef, (nd == NULL ? _none : nd->_type), actualArguCounter);
+		if (mItem != NULL) {
+			int res = checkFormalArguType(mItem->methDef, (nd == NULL ? _none : nd->_type), m_nd->argCounter);
 			if (res == -1)
-				fwarn("Too much argument(s) when invocating the method \"%s\".", methItem->name, NULL, NULL, NULL, NULL);
+				fwarn("Too much argument(s) when invocating the method \"%s\".", mItem->name, NULL, NULL, NULL, NULL);
 			else if (res == 0)
-				fwarn("Types are NOT matched when invocating the method \"%s\".", methItem->name, NULL, NULL, NULL, NULL);
+				fwarn("Types are NOT matched when invocating the method \"%s\".", mItem->name, NULL, NULL, NULL, NULL);
+			// count the number of actual arguments
+			++(m_nd->argCounter);
 		}
 		free_e(nd);
-		// count the number of actual arguments
-		++actualArguCounter;
 	}
 	;
 
@@ -705,7 +728,7 @@ int checkReturnType() {
 			}
 			
 			// this method has a return type but NOTHING found after a RETURN keyword
-			else if (e == NULL)
+			else if (e == NULL || e->_type == _none)
 				fwarn("The return type of the method \"%s\" is \'%s\', but there\'s a RETURN statement without any values.", methItem->name, toS(methItem->methDef->_ret_type), NULL, NULL, NULL);
 			
 			// types between method prototype and actual return-type are NOT the same

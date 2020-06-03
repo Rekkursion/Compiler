@@ -638,7 +638,6 @@ char *yytext;
 	}
 	
 	// get a token of rest cases
-	//#define token(t) printf("<%s>\n", #t)
 	#define token(t) return t
 	
 	/* helping variable declarations */
@@ -654,12 +653,12 @@ char *yytext;
 	
 	// the single-line buffer for storing the input content
 	char sgLnBuf[200002] = {0};
-#line 657 "lex.yy.c"
-#line 77 "xxx.l"
+#line 656 "lex.yy.c"
+#line 76 "xxx.l"
 	/* state declaration: the comment state */
 
 	/* regular definition: one or more digits */
-#line 662 "lex.yy.c"
+#line 661 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -877,13 +876,13 @@ YY_DECL
 		}
 
 	{
-#line 83 "xxx.l"
+#line 82 "xxx.l"
 
 	/* ============================================================ */
 	/* tokens of delimiters */
 	
 	/* TOKEN: commas */
-#line 886 "lex.yy.c"
+#line 885 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -952,61 +951,61 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 88 "xxx.l"
+#line 87 "xxx.l"
 { bufText(","); token(COMMA); }
 	YY_BREAK
 /* TOKEN: colons */
 case 2:
 YY_RULE_SETUP
-#line 91 "xxx.l"
+#line 90 "xxx.l"
 { bufText(":"); token(COLON); }
 	YY_BREAK
 /* TOKEN: periods */
 case 3:
 YY_RULE_SETUP
-#line 94 "xxx.l"
+#line 93 "xxx.l"
 { bufText("."); token(PERIOD); }
 	YY_BREAK
 /* TOKEN: semicolons */
 case 4:
 YY_RULE_SETUP
-#line 97 "xxx.l"
+#line 96 "xxx.l"
 { bufText(";"); token(SEMICOLON); }
 	YY_BREAK
 /* TOKEN: open parentheses */
 case 5:
 YY_RULE_SETUP
-#line 100 "xxx.l"
+#line 99 "xxx.l"
 { bufText("("); token(OPEN_PAR); }
 	YY_BREAK
 /* TOKEN: close parentheses */
 case 6:
 YY_RULE_SETUP
-#line 103 "xxx.l"
+#line 102 "xxx.l"
 { bufText(")"); token(CLOSE_PAR); }
 	YY_BREAK
 /* TOKEN: open square brackets */
 case 7:
 YY_RULE_SETUP
-#line 106 "xxx.l"
+#line 105 "xxx.l"
 { bufText("["); token(OPEN_SQB); }
 	YY_BREAK
 /* TOKEN: close square brackets */
 case 8:
 YY_RULE_SETUP
-#line 109 "xxx.l"
+#line 108 "xxx.l"
 { bufText("]"); token(CLOSE_SQB); }
 	YY_BREAK
 /* TOKEN: open brackets */
 case 9:
 YY_RULE_SETUP
-#line 112 "xxx.l"
+#line 111 "xxx.l"
 { bufText("{"); token(OPEN_BRA); }
 	YY_BREAK
 /* TOKEN: close brackets */
 case 10:
 YY_RULE_SETUP
-#line 115 "xxx.l"
+#line 114 "xxx.l"
 { bufText("}"); token(CLOSE_BRA); }
 	YY_BREAK
 /* ============================================================ */
@@ -1014,100 +1013,100 @@ YY_RULE_SETUP
 /* TOKEN: "+" (add) -> arithmetic operators */
 case 11:
 YY_RULE_SETUP
-#line 121 "xxx.l"
+#line 120 "xxx.l"
 { bufText("+"); token('+'); }
 	YY_BREAK
 /* TOKEN: "-" (minus) -> arithmetic operators */
 case 12:
 YY_RULE_SETUP
-#line 124 "xxx.l"
+#line 123 "xxx.l"
 { bufText("-"); token('-'); }
 	YY_BREAK
 /* TOKEN: "*" (multiply) -> arithmetic operators */
 case 13:
 YY_RULE_SETUP
-#line 127 "xxx.l"
+#line 126 "xxx.l"
 { bufText("*"); token('*'); }
 	YY_BREAK
 /* TOKEN: "/" (divide) -> arithmetic operators */
 case 14:
 YY_RULE_SETUP
-#line 130 "xxx.l"
+#line 129 "xxx.l"
 { bufText("/"); token('/'); }
 	YY_BREAK
 /* TOKEN: "%" (mod) -> arithmetic operators */
 case 15:
 YY_RULE_SETUP
-#line 133 "xxx.l"
+#line 132 "xxx.l"
 { bufText("%"); token(MOD); }
 	YY_BREAK
 /* ======= */
 /* TOKEN: "<" (less-than) -> relational operators */
 case 16:
 YY_RULE_SETUP
-#line 138 "xxx.l"
+#line 137 "xxx.l"
 { bufText("<"); token(LT); }
 	YY_BREAK
 /* TOKEN: "<=" (less-equal) -> relational operators */
 case 17:
 YY_RULE_SETUP
-#line 141 "xxx.l"
+#line 140 "xxx.l"
 { bufText("<="); token(LE); }
 	YY_BREAK
 /* TOKEN: ">=" (greater-equal) -> relational operators */
 case 18:
 YY_RULE_SETUP
-#line 144 "xxx.l"
+#line 143 "xxx.l"
 { bufText(">="); token(GE); }
 	YY_BREAK
 /* TOKEN: ">" (greater-than) -> relational operators */
 case 19:
 YY_RULE_SETUP
-#line 147 "xxx.l"
+#line 146 "xxx.l"
 { bufText(">"); token(GT); }
 	YY_BREAK
 /* TOKEN: "==" (equal-to) -> relational operators */
 case 20:
 YY_RULE_SETUP
-#line 150 "xxx.l"
+#line 149 "xxx.l"
 { bufText("=="); token(EQ); }
 	YY_BREAK
 /* TOKEN: "!=" (not-equal-to) -> relational operators */
 case 21:
 YY_RULE_SETUP
-#line 153 "xxx.l"
+#line 152 "xxx.l"
 { bufText("!="); token(NE); }
 	YY_BREAK
 /* ======= */
 /* TOKEN: "&&" (logical AND) -> logical operators */
 case 22:
 YY_RULE_SETUP
-#line 158 "xxx.l"
+#line 157 "xxx.l"
 { bufText("&&"); token(AND); }
 	YY_BREAK
 /* TOKEN: "||" (logical OR) -> logical operators */
 case 23:
 YY_RULE_SETUP
-#line 161 "xxx.l"
+#line 160 "xxx.l"
 { bufText("||"); token(OR); }
 	YY_BREAK
 /* TOKEN: "!" (logical NOT) -> logical operators */
 case 24:
 YY_RULE_SETUP
-#line 164 "xxx.l"
+#line 163 "xxx.l"
 { bufText("!"); token(NOT); }
 	YY_BREAK
 /* ======= */
 /* TOKEN: "=" (assignment) -> assignment operators */
 case 25:
 YY_RULE_SETUP
-#line 169 "xxx.l"
+#line 168 "xxx.l"
 { bufText("="); token('='); }
 	YY_BREAK
 /* TOKEN: "<-" (identifier assignment in a FOR loop) -> assignment operators */
 case 26:
 YY_RULE_SETUP
-#line 172 "xxx.l"
+#line 171 "xxx.l"
 { bufText("<-"); token(ARROW_IN_FOR); }
 	YY_BREAK
 /* ============================================================ */
@@ -1115,175 +1114,175 @@ YY_RULE_SETUP
 /* TOKEN: "boolean" -> keywords */
 case 27:
 YY_RULE_SETUP
-#line 178 "xxx.l"
+#line 177 "xxx.l"
 { bufText(yytext); token(BOOLEAN); }
 	YY_BREAK
 /* TOKEN: "break" -> keywords */
 case 28:
 YY_RULE_SETUP
-#line 181 "xxx.l"
+#line 180 "xxx.l"
 { bufText(yytext); token(BREAK); }
 	YY_BREAK
 /* TOKEN: "char" -> keywords */
 case 29:
 YY_RULE_SETUP
-#line 184 "xxx.l"
+#line 183 "xxx.l"
 { bufText(yytext); token(CHAR); }
 	YY_BREAK
 /* TOKEN: "case" -> keywords */
 case 30:
 YY_RULE_SETUP
-#line 187 "xxx.l"
+#line 186 "xxx.l"
 { bufText(yytext); token(CASE); }
 	YY_BREAK
 /* TOKEN: "class" -> keywords */
 case 31:
 YY_RULE_SETUP
-#line 190 "xxx.l"
+#line 189 "xxx.l"
 { bufText(yytext); token(CLASS); }
 	YY_BREAK
 /* TOKEN: "continue" -> keywords */
 case 32:
 YY_RULE_SETUP
-#line 193 "xxx.l"
+#line 192 "xxx.l"
 { bufText(yytext); token(CONTINUE); }
 	YY_BREAK
 /* TOKEN: "def" -> keywords */
 case 33:
 YY_RULE_SETUP
-#line 196 "xxx.l"
+#line 195 "xxx.l"
 { bufText(yytext); token(DEF); }
 	YY_BREAK
 /* TOKEN: "do" -> keywords */
 case 34:
 YY_RULE_SETUP
-#line 199 "xxx.l"
+#line 198 "xxx.l"
 { bufText(yytext); token(DO); }
 	YY_BREAK
 /* TOKEN: "else" -> keywords */
 case 35:
 YY_RULE_SETUP
-#line 202 "xxx.l"
+#line 201 "xxx.l"
 { bufText(yytext); token(ELSE); }
 	YY_BREAK
 /* TOKEN: "exit" -> keywords */
 case 36:
 YY_RULE_SETUP
-#line 205 "xxx.l"
+#line 204 "xxx.l"
 { bufText(yytext); token(EXIT); }
 	YY_BREAK
 /* TOKEN: "false" -> keywords */
 case 37:
 YY_RULE_SETUP
-#line 208 "xxx.l"
+#line 207 "xxx.l"
 { bufText(yytext); token(FALSE); }
 	YY_BREAK
 /* TOKEN: "float" -> keywords */
 case 38:
 YY_RULE_SETUP
-#line 211 "xxx.l"
+#line 210 "xxx.l"
 { bufText(yytext); token(FLOAT); }
 	YY_BREAK
 /* TOKEN: "for" -> keywords */
 case 39:
 YY_RULE_SETUP
-#line 214 "xxx.l"
+#line 213 "xxx.l"
 { bufText(yytext); token(FOR); }
 	YY_BREAK
 /* TOKEN: "if" -> keywords */
 case 40:
 YY_RULE_SETUP
-#line 217 "xxx.l"
+#line 216 "xxx.l"
 { bufText(yytext); token(IF); }
 	YY_BREAK
 /* TOKEN: "int" -> keywords */
 case 41:
 YY_RULE_SETUP
-#line 220 "xxx.l"
+#line 219 "xxx.l"
 { bufText(yytext); token(INT); }
 	YY_BREAK
 /* TOKEN: "null" -> keywords */
 case 42:
 YY_RULE_SETUP
-#line 223 "xxx.l"
+#line 222 "xxx.l"
 { bufText(yytext); token(NULLS); }
 	YY_BREAK
 /* TOKEN: "object" -> keywords */
 case 43:
 YY_RULE_SETUP
-#line 226 "xxx.l"
+#line 225 "xxx.l"
 { bufText(yytext); token(OBJECT); }
 	YY_BREAK
 /* TOKEN: "print" -> keywords */
 case 44:
 YY_RULE_SETUP
-#line 229 "xxx.l"
+#line 228 "xxx.l"
 { bufText(yytext); token(PRINT); }
 	YY_BREAK
 /* TOKEN: "println" -> keywords */
 case 45:
 YY_RULE_SETUP
-#line 232 "xxx.l"
+#line 231 "xxx.l"
 { bufText(yytext); token(PRINTLN); }
 	YY_BREAK
 /* TOKEN: "read" -> read */
 case 46:
 YY_RULE_SETUP
-#line 235 "xxx.l"
+#line 234 "xxx.l"
 { bufText(yytext); token(READ); }
 	YY_BREAK
 /* TOKEN: "repeat" -> keywords */
 case 47:
 YY_RULE_SETUP
-#line 238 "xxx.l"
+#line 237 "xxx.l"
 { bufText(yytext); token(REPEAT); }
 	YY_BREAK
 /* TOKEN: "return" -> keywords */
 case 48:
 YY_RULE_SETUP
-#line 241 "xxx.l"
+#line 240 "xxx.l"
 { bufText(yytext); token(RETURN); }
 	YY_BREAK
 /* TOKEN: "string" -> keywords */
 case 49:
 YY_RULE_SETUP
-#line 244 "xxx.l"
+#line 243 "xxx.l"
 { bufText(yytext); token(STRING); }
 	YY_BREAK
 /* TOKEN: "to" -> keywords */
 case 50:
 YY_RULE_SETUP
-#line 247 "xxx.l"
+#line 246 "xxx.l"
 { bufText(yytext); token(TO); }
 	YY_BREAK
 /* TOKEN: "true" -> keywords */
 case 51:
 YY_RULE_SETUP
-#line 250 "xxx.l"
+#line 249 "xxx.l"
 { bufText(yytext); token(TRUE); }
 	YY_BREAK
 /* TOKEN: "type" -> keywords */
 case 52:
 YY_RULE_SETUP
-#line 253 "xxx.l"
+#line 252 "xxx.l"
 { bufText(yytext); token(TYPE); }
 	YY_BREAK
 /* TOKEN: "val" -> keywords */
 case 53:
 YY_RULE_SETUP
-#line 256 "xxx.l"
+#line 255 "xxx.l"
 { bufText(yytext); token(VAL); }
 	YY_BREAK
 /* TOKEN: "var" -> keywords */
 case 54:
 YY_RULE_SETUP
-#line 259 "xxx.l"
+#line 258 "xxx.l"
 { bufText(yytext); token(VAR); }
 	YY_BREAK
 /* TOKEN: "while" -> keywords */
 case 55:
 YY_RULE_SETUP
-#line 262 "xxx.l"
+#line 261 "xxx.l"
 { bufText(yytext); token(WHILE); }
 	YY_BREAK
 /* ============================================================ */
@@ -1291,7 +1290,7 @@ YY_RULE_SETUP
 /* TOKEN: identifiers */
 case 56:
 YY_RULE_SETUP
-#line 268 "xxx.l"
+#line 267 "xxx.l"
 {
 	// buffer the text
 	bufText(yytext);
@@ -1303,13 +1302,13 @@ YY_RULE_SETUP
 /* TOKEN: integers */
 case 57:
 YY_RULE_SETUP
-#line 277 "xxx.l"
+#line 276 "xxx.l"
 { bufText(yytext); tokenInteger(yytext); }
 	YY_BREAK
 /* TOKEN: real numbers */
 case 58:
 YY_RULE_SETUP
-#line 280 "xxx.l"
+#line 279 "xxx.l"
 {
 	bufText(yytext);
 	tokenReal(yytext);
@@ -1318,7 +1317,7 @@ YY_RULE_SETUP
 /* TOKEN: characters */
 case 59:
 YY_RULE_SETUP
-#line 286 "xxx.l"
+#line 285 "xxx.l"
 {
 	// buffer the text
 	bufText(yytext);
@@ -1341,7 +1340,7 @@ YY_RULE_SETUP
 /* TOKEN: strings */
 case 60:
 YY_RULE_SETUP
-#line 306 "xxx.l"
+#line 305 "xxx.l"
 {
 	// buffer the attained text
 	bufText(yytext);
@@ -1389,7 +1388,7 @@ YY_RULE_SETUP
 case 61:
 /* rule 61 can match eol */
 YY_RULE_SETUP
-#line 351 "xxx.l"
+#line 350 "xxx.l"
 {
 	bufText(yytext);
 	++numOfLines;
@@ -1399,7 +1398,7 @@ YY_RULE_SETUP
 case 62:
 /* rule 62 can match eol */
 YY_RULE_SETUP
-#line 357 "xxx.l"
+#line 356 "xxx.l"
 {
 	bufText(yytext);
 	++numOfLines;
@@ -1408,7 +1407,7 @@ YY_RULE_SETUP
 /* begin the COMMENT state when "/*" has been found */
 case 63:
 YY_RULE_SETUP
-#line 363 "xxx.l"
+#line 362 "xxx.l"
 {
 	bufText(yytext);
 	BEGIN COMMENT;
@@ -1419,7 +1418,7 @@ YY_RULE_SETUP
 case 64:
 /* rule 64 can match eol */
 YY_RULE_SETUP
-#line 370 "xxx.l"
+#line 369 "xxx.l"
 {
 	bufText(yytext);
 	++numOfLines;
@@ -1429,7 +1428,7 @@ YY_RULE_SETUP
 /* -> end the COMMENT state and go back to the INITIAL state */
 case 65:
 YY_RULE_SETUP
-#line 377 "xxx.l"
+#line 376 "xxx.l"
 {
 	bufText(yytext);
 	BEGIN 0;
@@ -1439,28 +1438,28 @@ YY_RULE_SETUP
 /* -> skip it */
 case 66:
 YY_RULE_SETUP
-#line 384 "xxx.l"
+#line 383 "xxx.l"
 { bufText(yytext); }
 	YY_BREAK
 /* in COMMENT state: any character excepts for '\n' and '*' */
 /* -> skip it */
 case 67:
 YY_RULE_SETUP
-#line 388 "xxx.l"
+#line 387 "xxx.l"
 { bufText(yytext); }
 	YY_BREAK
 /* tabs & spaces */
 case 68:
 YY_RULE_SETUP
-#line 391 "xxx.l"
+#line 390 "xxx.l"
 { bufText(yytext); }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 393 "xxx.l"
+#line 392 "xxx.l"
 ECHO;
 	YY_BREAK
-#line 1463 "lex.yy.c"
+#line 1462 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -2478,5 +2477,5 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 393 "xxx.l"
+#line 392 "xxx.l"
 

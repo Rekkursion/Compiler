@@ -53,7 +53,6 @@
 	}
 	
 	// get a token of rest cases
-	//#define token(t) printf("<%s>\n", #t)
 	#define token(t) return t
 	
 	/* helping variable declarations */
