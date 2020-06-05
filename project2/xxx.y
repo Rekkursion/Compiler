@@ -1,9 +1,10 @@
 %{
 	#include <stdio.h>
-	#include "e_stack.hpp"
-	#include "v_stack.hpp"
-	#include "m_stack.hpp"
+	#include "e_stack.hpp" // the stack for expressions
+	#include "v_stack.hpp" // the stack for variables/constands/arrays
+	#include "m_stack.hpp" // the stack for methods (invocations)
 	
+	// for the symbol table
 	#ifndef _SYMBOL_TABLE
 	#include "symbol_table.hpp"
 	#define _SYMBOL_TABLE
@@ -11,6 +12,8 @@
 	
 	// a node of a single hash-table
 	typedef struct hnode {
+		// the flag for identifying if this symbol-table is global or not
+		int inGlobalFlag;
 		// the hash-table to store identifiers in a certain scope
 		HashTable table;
 		// the pointer points to the previous Hnode
@@ -200,15 +203,10 @@ def_body
 	| %empty
 	;
 
-/* the body of a block */
+/* the body of a block (could be empty) */
 block_body
-	: block_body_first_part statement
-	;
-
-/* the first part of the block body */
-block_body_first_part
-	: block_body_first_part declaration
-	| block_body_first_part statement
+	: block_body declaration
+	| block_body statement
 	| %empty
 	;
 
@@ -291,8 +289,8 @@ opt_else
 
 /* a single simple statement */
 stmt
-	: expr %prec EXPR { checkReturnType(); }
-	| assignment %prec ASSIGNMENT
+	: assignment %prec ASSIGNMENT
+	| func_invoc
 	| READ { clear_e(); } identifier { setAssignee(); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
 	| RETURN expr %prec RETURN_W_EXPR { returnFlag = 1; printFlag = 0; checkReturnType(); }
 	| RETURN { clear_e(); returnFlag = 1; printFlag = 0; checkReturnType(); }
@@ -500,11 +498,13 @@ void appendHashTable() {
 	if (hhead == NULL) {
 		hhead = newNode;
 		htail = hhead;
+		newNode->inGlobalFlag = 1;
 	}
 	// general case
 	else {
 		newNode->prev = htail;
 		htail = newNode;
+		newNode->inGlobalFlag = 0;
 	}
 }
 

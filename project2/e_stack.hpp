@@ -348,8 +348,12 @@ int doOp(char* opName, int isBinOp, int (*warn)(const char*)) {
 			push_e(_boolean, NULL);
 			warnUser(warn, "The operands of relational operation \"%s\" must be both numeric, but they are \'%s\' and \'%s\'.", opName, toS(ltype), toS(rtype), NULL, NULL);
 		}
-		// no type errors and warnings
+		// no type errors (but has warnings, i.e., INT & FLOAT)
 		else {
+			// if one of the operand is INT but another one is FLOAT -> type warning
+			if ((ltype == _int && rtype == _float) || (ltype == _float && rtype == _int))
+				warnUser(warn, "Type warning: The operands\' types of the comparing operation \"%s\" is NOT the same (\'%s\' and \'%s\'), that may loss some precision of the value.", opName, toS(ltype), toS(rtype), NULL, NULL);
+			
 			// the result of this relational operation
 			int relRes = _DEFAULT_BOOLEAN;
 			
