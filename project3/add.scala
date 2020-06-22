@@ -1,24 +1,35 @@
-/* Sigma.scala
+/* fib.scala
  *
- * Compute sum = 1 + 2 + ... + n
+ * This test program computes the Nth Fibonacci number
  */
 
-object Sigma
-{
-  // constants and variables
-  val n = 10
-  var sum: int
-  var index: int
-
+object example {
+	var k
+	var l
   def main () {
-    sum = 0
-    index = 0
-    
-    while (index <= n) {
-      sum = sum + index
-      index = index + 1
-    }
-    print ("The sum is ")
-    println (sum)
+	var i
+	var j
+	
+	read i
+	read j
+	read k
+	
+	print "i = "
+	println i
+	
+	print "k = "
+	println k
+	
+	read k
+	read l
+	
+	print "j = "
+	println j
+	
+	print "l = "
+	println l
+	
+	print "k = "
+	println k
   }
 }

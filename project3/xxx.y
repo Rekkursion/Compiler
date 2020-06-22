@@ -16,8 +16,6 @@
 	
 	// a node of a single hash-table
 	typedef struct hnode {
-		// the counter for local variables
-		int localCounter;
 		// the flag for identifying if this symbol-table is global or not
 		int inGlobalFlag;
 		// the hash-table to store identifiers in a certain scope
@@ -63,9 +61,6 @@
 	// set the assignee, i.e., the identifier which is about to be assigned
 	void setAssignee();
 	
-	// set the iterator which is used in for-loops
-	void setIterator();
-	
 	// check the return type of a method when analyzing a RETURN statement
 	int checkReturnType();
 	
@@ -84,8 +79,11 @@
 	// generate the java assembly code w/ an integer value ('i' stands for 'integer')
 	void igenJavaa(const char*, const int, const char*);
 	
-	// generate the java assembly code for a relational operation
+	// generate the java assembly code for a relational operation ('r' stands for 'relational')
 	void rgenJavaa(const char*);
+	
+	// generate the java assembly code for a read-clause ('u' stands for 'user' input)
+	void ugenJavaa(const char*);
 	
 	
 	/* helper variables */
@@ -98,9 +96,6 @@
 	
 	// the temporally-saved assignee, i.e., the identifier which is about to be assigned
 	char* assignee = NULL;
-	
-	// the temporally-saved iterator for for-loops
-	char* iterator = NULL;
 	
 	// the temporally-saved the method when defining one
 	Item* methItem = NULL;
@@ -118,6 +113,9 @@
 	// the flag to check if there's a method named "main" or not
 	int hasMainFlag = 0;
 	
+	// the counter for localizing the local variables to jvm
+	int localCounter = 0;
+	
 	// in global or local currently
 	int inGlobal = 1;
 	
@@ -129,6 +127,9 @@
 	
 	// the counter for for-loops
 	int forLoopCounter = 0;
+	
+	// the counter of labels for the read-clause
+	int readLabelCounter = 0;
 %}
 
 /* the union of different types */
@@ -407,13 +408,15 @@ statement
 		free_b(bnd);
 	}
 	| FOR OPEN_PAR identifier {
-		setIterator();
+		// push an iterator (of a for-loop) into the it-stack
+		push_it(ident);
 	} ARROW_IN_FOR expr {
 		Enode* e = pop_e();
 		if (e == NULL)
 			warn("No assigned value found in an assignment.");
 		else {
-			Item* item = lookupInHashTable(iterator);
+			ItNode* itnd = peek_it();
+			Item* item = lookupInHashTable(itnd->iterator);
 			if (item) {
 				if (item->dataType == _none)
 					item->dataType = e->_type;
@@ -449,10 +452,11 @@ statement
 		Bnode* bnd = peek_b();
 		igenJavaa("ifeq Lexit_", bnd->lblNum, "\n");
 	} CLOSE_PAR statement {
+		ItNode* itnd = pop_it();
 		Bnode* bnd = pop_b();
 		
 		// the implicit add-one operation applied on the iterator
-		Item* item = lookupInHashTable(iterator);
+		Item* item = lookupInHashTable(itnd->iterator);
 		if (item) {
 			// a global variable
 			if (item->isGlobalFlag == 1)
@@ -473,7 +477,9 @@ statement
 		
 		igenJavaa("goto Lbegin_", bnd->lblNum, "\n");
 		igenJavaa("Lexit_", bnd->lblNum, ":\n");
+		
 		free_b(bnd);
+		free_it(itnd);
 	}
 	;
 
@@ -487,7 +493,7 @@ opt_else
 stmt
 	: assignment %prec ASSIGNMENT
 	| func_invoc
-	| READ { clear_e(); } identifier { setAssignee(); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
+	| READ { clear_e(); } identifier { setAssignee(); ugenJavaa(ident); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
 	| RETURN expr %prec RETURN_W_EXPR {
 		returnFlag = 1; printFlag = 0; checkReturnType();
 		genJavaa("ireturn\n");
@@ -777,7 +783,6 @@ void appendHashTable() {
 	Hnode* newNode = (Hnode*)malloc(sizeof(Hnode));
 	newNode->table = create();
 	newNode->prev = NULL;
-	newNode->localCounter = 0;
 
 	// the first node
 	if (hhead == NULL) {
@@ -806,6 +811,10 @@ void removeHashTable() {
 	Hnode* p = htail;
 	htail = htail->prev;
 	
+	// zero-fy the local-counter if the symbol-table comes back to the scale of object
+	if (htail != NULL && htail == hhead)
+		localCounter = 0;
+	
 	// free the Hnode pointer that just been removed
 	free(p);
 }
@@ -817,9 +826,9 @@ int insertIntoHashTable(const char* name, ItemType itemType, DataType dataType) 
 		warn("Syntax error. You cannot assign variables here.");
 	
 	// try to insert the symbol into the latest hash-table
-	int insertionResult = insert(htail->table, name, htail->inGlobalFlag, htail->localCounter);
+	int insertionResult = insert(htail->table, name, htail->inGlobalFlag, localCounter);
 	if (itemType == _variable)
-		++(htail->localCounter);
+		++localCounter;
 	
 	// insertion failed: the identifier has already been declared in the current scope
 	if (insertionResult == -1) {
@@ -1005,23 +1014,6 @@ void setAssignee() {
 	}
 }
 
-// set the iterator which is used in for-loops
-void setIterator() {
-	// free the iterator if needs
-	if (iterator != NULL)
-		free(iterator);
-	
-	// nullify it
-	iterator = NULL;
-	
-	// re-assign the value through the temporally-saved variable 'ident' if any
-	if (ident) {
-		iterator = (char*)malloc(sizeof(char) * (strlen(ident) + 1));
-		iterator[0] = 0;
-		strcpy(iterator, ident);
-	}
-}
-
 // check the return type of a method when analyzing a RETURN statement
 int checkReturnType() {
 	// pop an Enode as the return value
@@ -1120,4 +1112,76 @@ void igenJavaa(const char* pre, const int value, const char* post) {
 void rgenJavaa(const char* reOp) {
 	fprintf(fout, "isub\n%s L%d\niconst_0\ngoto L%d\nL%d:\niconst_1\nL%d:\n", reOp, labelCounter, labelCounter + 1, labelCounter, labelCounter + 1);
 	labelCounter += 2;
+}
+
+// generate the java assembly code for a read-clause ('u' stands for 'user' input)
+void ugenJavaa(const char* idName) {
+	// append a new symbol-table for avoiding the issue of identifier duplication
+	appendHashTable();
+	
+	// initialize two temporal variables: 'tmp' & 'total'
+	initNewId("tmp", _variable, _int, _int);
+	initNewId("total", _variable, _int, _int);
+	Item* tmp = lookupInHashTable("tmp");
+	Item* ttl = lookupInHashTable("total");
+	
+	// get the item of the to-be-assigned variable
+	Item* id = lookupInHashTable(idName);
+	
+	// initialize 'total' to zero
+	genJavaa("ldc 0\n");
+	igenJavaa("istore ", ttl->localNum, "\n");
+	
+	// the beginning label of this read operation
+	igenJavaa("Lread_begin_", readLabelCounter, ":\n");
+	
+	// read a byte of input data and store it into 'tmp'
+	genJavaa("getstatic java.io.InputStream java.lang.System.in\n");
+	genJavaa("invokevirtual int java.io.InputStream.read()\n");
+	igenJavaa("istore ", tmp->localNum, "\n");
+	
+	// check if the input data is redundant (10) or not
+	igenJavaa("iload ", tmp->localNum, "\n");
+	genJavaa("ldc 10\n");
+	genJavaa("isub\n");
+	igenJavaa("ifeq Lread_begin_", readLabelCounter, "\n");
+	
+	// check if the read operation shall finish or not
+	igenJavaa("iload ", tmp->localNum, "\n");
+	genJavaa("ldc 13\n");
+	genJavaa("isub\n");
+	igenJavaa("ifeq Lread_exit_", readLabelCounter, "\n");
+	
+	// subtract 'tmp' (the value that just be read-in) by 48
+	igenJavaa("iload ", tmp->localNum, "\n");
+	genJavaa("ldc 48\n");
+	genJavaa("isub\n");
+	
+	// multiply 'total' by 10
+	igenJavaa("iload ", ttl->localNum, "\n");
+	genJavaa("ldc 10\n");
+	genJavaa("imul\n");
+	
+	// add 'total' by the subtracted 'tmp'
+	genJavaa("iadd\n");
+	igenJavaa("istore ", ttl->localNum, "\n");
+	
+	// go back to the beginning of this read operation
+	igenJavaa("goto Lread_begin_", readLabelCounter, "\n");
+	
+	// the exit of this read operation
+	igenJavaa("Lread_exit_", readLabelCounter, ":\n");
+	
+	// store the calculated input value back to the to-be-assigned variable
+	igenJavaa("iload ", ttl->localNum, "\n");
+	if (id->isGlobalFlag)
+		fgenJavaa("putstatic %s %s.%s\n", toS(id->dataType), objName, id->name, NULL, NULL);
+	else
+		igenJavaa("istore ", id->localNum, "\n");
+	
+	// add the read-label-counter by 1
+	++readLabelCounter;
+	
+	// remove this temporal symbol-table
+	removeHashTable();
 }

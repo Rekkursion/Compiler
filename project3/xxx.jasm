@@ -1,40 +1,169 @@
-class Sigma {
-field static int sum
-field static int index
+class example {
+field static int k
+field static int l
 method public static void main(java.lang.String[])
 max_stack 15
 max_locals 15
 {
 ldc 0
-putstatic int Sigma.sum
-ldc 0
-putstatic int Sigma.index
-Lbegin_0:
-getstatic int Sigma.index
+istore 5
+Lread_begin_0:
+getstatic java.io.InputStream java.lang.System.in
+invokevirtual int java.io.InputStream.read()
+istore 4
+iload 4
 ldc 10
 isub
-ifle L0
-iconst_0
-goto L1
-L0:
-iconst_1
-L1:
-ifeq Lexit_0
-getstatic int Sigma.sum
-getstatic int Sigma.index
+ifeq Lread_begin_0
+iload 4
+ldc 13
+isub
+ifeq Lread_exit_0
+iload 4
+ldc 48
+isub
+iload 5
+ldc 10
+imul
 iadd
-putstatic int Sigma.sum
-getstatic int Sigma.index
-ldc 1
+istore 5
+goto Lread_begin_0
+Lread_exit_0:
+iload 5
+istore 2
+ldc 0
+istore 7
+Lread_begin_1:
+getstatic java.io.InputStream java.lang.System.in
+invokevirtual int java.io.InputStream.read()
+istore 6
+iload 6
+ldc 10
+isub
+ifeq Lread_begin_1
+iload 6
+ldc 13
+isub
+ifeq Lread_exit_1
+iload 6
+ldc 48
+isub
+iload 7
+ldc 10
+imul
 iadd
-putstatic int Sigma.index
-goto Lbegin_0
-Lexit_0:
+istore 7
+goto Lread_begin_1
+Lread_exit_1:
+iload 7
+istore 3
+ldc 0
+istore 9
+Lread_begin_2:
+getstatic java.io.InputStream java.lang.System.in
+invokevirtual int java.io.InputStream.read()
+istore 8
+iload 8
+ldc 10
+isub
+ifeq Lread_begin_2
+iload 8
+ldc 13
+isub
+ifeq Lread_exit_2
+iload 8
+ldc 48
+isub
+iload 9
+ldc 10
+imul
+iadd
+istore 9
+goto Lread_begin_2
+Lread_exit_2:
+iload 9
+putstatic int example.k
 getstatic java.io.PrintStream java.lang.System.out
-ldc "The sum is "
+ldc "i = "
 invokevirtual void java.io.PrintStream.print(java.lang.String)
 getstatic java.io.PrintStream java.lang.System.out
-getstatic int Sigma.sum
+iload 2
+invokevirtual void java.io.PrintStream.println(int)
+getstatic java.io.PrintStream java.lang.System.out
+ldc "k = "
+invokevirtual void java.io.PrintStream.print(java.lang.String)
+getstatic java.io.PrintStream java.lang.System.out
+getstatic int example.k
+invokevirtual void java.io.PrintStream.println(int)
+ldc 0
+istore 11
+Lread_begin_3:
+getstatic java.io.InputStream java.lang.System.in
+invokevirtual int java.io.InputStream.read()
+istore 10
+iload 10
+ldc 10
+isub
+ifeq Lread_begin_3
+iload 10
+ldc 13
+isub
+ifeq Lread_exit_3
+iload 10
+ldc 48
+isub
+iload 11
+ldc 10
+imul
+iadd
+istore 11
+goto Lread_begin_3
+Lread_exit_3:
+iload 11
+putstatic int example.k
+ldc 0
+istore 13
+Lread_begin_4:
+getstatic java.io.InputStream java.lang.System.in
+invokevirtual int java.io.InputStream.read()
+istore 12
+iload 12
+ldc 10
+isub
+ifeq Lread_begin_4
+iload 12
+ldc 13
+isub
+ifeq Lread_exit_4
+iload 12
+ldc 48
+isub
+iload 13
+ldc 10
+imul
+iadd
+istore 13
+goto Lread_begin_4
+Lread_exit_4:
+iload 13
+putstatic int example.l
+getstatic java.io.PrintStream java.lang.System.out
+ldc "j = "
+invokevirtual void java.io.PrintStream.print(java.lang.String)
+getstatic java.io.PrintStream java.lang.System.out
+iload 3
+invokevirtual void java.io.PrintStream.println(int)
+getstatic java.io.PrintStream java.lang.System.out
+ldc "l = "
+invokevirtual void java.io.PrintStream.print(java.lang.String)
+getstatic java.io.PrintStream java.lang.System.out
+getstatic int example.l
+invokevirtual void java.io.PrintStream.println(int)
+getstatic java.io.PrintStream java.lang.System.out
+ldc "k = "
+invokevirtual void java.io.PrintStream.print(java.lang.String)
+getstatic java.io.PrintStream java.lang.System.out
+getstatic int example.k
 invokevirtual void java.io.PrintStream.println(int)
 return
 }
