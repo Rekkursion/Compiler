@@ -85,6 +85,19 @@
 	// generate the java assembly code for a read-clause ('u' stands for 'user' input)
 	void ugenJavaa(const char*);
 	
+	// buffer the java assembly code w/ a plain string
+	void bufJavaa(const char*);
+	
+	// buffer the java assembly code w/ a formatted string ('f' stands for 'formatted')
+	void fbufJavaa(const char*, const char*, const char*, const char*, const char*, const char*);
+	
+	// buffer the java assembly code w/ an integer value ('i' stands for 'integer')
+	void ibufJavaa(const char*, const int, const char*);
+	
+	// flush the buffered java assembly code
+	void flushJavaa();
+	
+	
 	
 	/* helper variables */
 	
@@ -96,6 +109,9 @@
 	
 	// the temporally-saved assignee, i.e., the identifier which is about to be assigned
 	char* assignee = NULL;
+	
+	// the buffer of java assembly code
+	char* jBuf = NULL;
 	
 	// the temporally-saved the method when defining one
 	Item* methItem = NULL;
@@ -118,6 +134,9 @@
 	
 	// in global or local currently
 	int inGlobal = 1;
+	
+	// in a global's variable declaration or not
+	int inGlobalVarDclr = 0;
 	
 	// the counter of labels
 	int labelCounter = 0;
@@ -232,6 +251,9 @@ method_def
 			}
 		}
 		genJavaa(")\nmax_stack 15\nmax_locals 15\n{\n");
+		
+		if (strcmp(methItem->name, "main") == 0)
+			flushJavaa();
 	} OPEN_BRA def_body CLOSE_BRA {
 		if (methItem->methDef->_ret_type == _none)
 			genJavaa("return\n");
@@ -324,15 +346,24 @@ val_dclr
 
 /* the declaration of a variable */
 var_dclr
-	: VAR identifier opt_type_dclr { setAssignee(); } opt_init {
+	: VAR identifier opt_type_dclr {
+		setAssignee();
+		if (inGlobal)
+			inGlobalVarDclr = 1;
+	} opt_init {
 		Enode* e = pop_e();
 		initNewId(assignee, _variable, _int, (e == NULL) ? _none : e->_type);
 		
 		// the global variable
 		if (inGlobal) {
 			fgenJavaa("field static %s %s\n", toS(_int), assignee, NULL, NULL, NULL);
-			if (e != NULL)
-				fgenJavaa("putstatic %s %s.%s\n", toS(_int), objName, assignee, NULL, NULL);
+			if (e != NULL) {
+				if (inGlobal) {
+					bufJavaa("putstatic "); bufJavaa(toS(_int)); bufJavaa(" "); bufJavaa(objName); bufJavaa("."); bufJavaa(assignee); bufJavaa("\n");
+				}
+				else
+					fgenJavaa("putstatic %s %s.%s\n", toS(_int), objName, assignee, NULL, NULL);
+			}
 		}
 		// the local variable
 		else {
@@ -344,11 +375,13 @@ var_dclr
 		}
 		
 		free_e(e);
+		inGlobalVarDclr = 0;
 	}
 	| VAR identifier COLON data_type { setAssignee(); } OPEN_SQB expr CLOSE_SQB {
 		Enode* e = pop_e();
 		initNewId(assignee, _array, $4, (e == NULL) ? _none : e->_type);
 		free_e(e);
+		inGlobalVarDclr = 0;
 	}
 	;
 
@@ -577,7 +610,7 @@ opt_squared_brackets
    'doOP' means 'do the operation' */
 expr
 /* numeric expression */
-	: expr '+' expr { doOp("+", 1, warn); if (!inGlobal) { genJavaa("iadd\n"); } }
+	: expr '+' expr { doOp("+", 1, warn); if (!inGlobal) { genJavaa("iadd\n"); } else if (inGlobalVarDclr) { bufJavaa("iadd\n"); } }
 	| expr '-' expr { doOp("-", 1, warn); if (!inGlobal) { genJavaa("isub\n"); } }
 	| expr '*' expr { doOp("*", 1, warn); if (!inGlobal) { genJavaa("imul\n"); } }
 	| expr '/' expr { doOp("/", 1, warn); if (!inGlobal) { genJavaa("idiv\n"); } }
@@ -588,7 +621,7 @@ expr
 	| expr GE expr { doOp(">=", 1, warn); if (!inGlobal) { rgenJavaa("ifge"); } }
 	| expr GT expr { doOp(">", 1, warn); if (!inGlobal) { rgenJavaa("ifgt"); } }
 	| LITERAL_FLOAT { push_e(_float, &($1)); }
-	| LITERAL_INTEGER { push_e(_int, &($1)); if (!inGlobal) { igenJavaa("ldc ", $1, "\n"); } }
+	| LITERAL_INTEGER { push_e(_int, &($1)); if (!inGlobal) { igenJavaa("ldc ", $1, "\n"); } else if (inGlobalVarDclr) { ibufJavaa("ldc ", $1, "\n"); } }
 /* boolean expression */
 	| NOT expr { doOp("!", 0, warn); if (!inGlobal) { genJavaa("iconst_1\nixor\n"); } }
 	| expr OR expr { doOp("||", 1, warn); if (!inGlobal) { genJavaa("ior\n"); } }
@@ -827,7 +860,7 @@ int insertIntoHashTable(const char* name, ItemType itemType, DataType dataType) 
 	
 	// try to insert the symbol into the latest hash-table
 	int insertionResult = insert(htail->table, name, htail->inGlobalFlag, localCounter);
-	if (itemType == _variable)
+	if (itemType == _variable && htail->inGlobalFlag == 0)
 		++localCounter;
 	
 	// insertion failed: the identifier has already been declared in the current scope
@@ -1184,4 +1217,57 @@ void ugenJavaa(const char* idName) {
 	
 	// remove this temporal symbol-table
 	removeHashTable();
+}
+
+// buffer the java assembly code w/ a plain string
+void bufJavaa(const char* str) {
+	if (str != NULL) {
+		if (jBuf == NULL) {
+			jBuf = (char*)malloc(sizeof(char) * (strlen(str) + 1));
+			strcpy(jBuf, str);
+		}
+		else {
+			char* tmp = (char*)malloc(sizeof(char) * (strlen(jBuf) + 1));
+			strcpy(tmp, jBuf);
+			free(jBuf);
+			jBuf = (char*)malloc(sizeof(char) * (strlen(tmp) + strlen(str) + 1));
+			strcpy(jBuf, tmp);
+			strcat(jBuf, str);
+			free(tmp);
+		}
+	}
+	printf("|%s|\n", jBuf);
+}
+
+// buffer the java assembly code w/ a formatted string ('f' stands for 'formatted')
+void fbufJavaa(const char* str, const char* p0, const char* p1, const char* p2, const char* p3, const char* p4) {
+	char* formatted = (char*)malloc(sizeof(char) * (
+		(p0 == NULL ? 0 : strlen(p0)) +
+		(p1 == NULL ? 0 : strlen(p1)) +
+		(p2 == NULL ? 0 : strlen(p2)) +
+		(p3 == NULL ? 0 : strlen(p3)) +
+		(p4 == NULL ? 0 : strlen(p4)) + 1
+	));
+	formatted[0] = 0;
+	sprintf(formatted, str, (p0 == NULL ? "" : p0), (p1 == NULL ? "" : p1), (p2 == NULL ? "" : p2), (p3 == NULL ? NULL : p3), (p4 == NULL ? NULL : p4));
+	bufJavaa(formatted);
+	free(formatted);
+}
+
+// buffer the java assembly code w/ an integer value ('i' stands for 'integer')
+void ibufJavaa(const char* pre, const int value, const char* post) {
+	char* formatted = (char*)malloc(sizeof(char) * (strlen(pre) + strlen(post) + 22));
+	formatted[0] = 0;
+	sprintf(formatted, "%s%d%s", (pre == NULL ? "" : pre), value, (post == NULL ? "" : post));
+	bufJavaa(formatted);
+	free(formatted);
+}
+
+// flush the buffered java assembly code
+void flushJavaa() {
+	if (jBuf == NULL)
+		return;
+	genJavaa(jBuf);
+	free(jBuf);
+	jBuf = NULL;
 }
