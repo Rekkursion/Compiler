@@ -90,21 +90,22 @@ extern int yydebug;
     FOR = 300,
     IF = 301,
     INT = 302,
-    NULLS = 303,
-    OBJECT = 304,
-    REPEAT = 305,
-    STRING = 306,
-    TO = 307,
-    TRUE = 308,
-    TYPE = 309,
-    VAL = 310,
-    VAR = 311,
-    WHILE = 312,
-    ID = 313,
-    LITERAL_CHAR = 314,
-    LITERAL_STRING = 315,
-    LITERAL_INTEGER = 316,
-    LITERAL_FLOAT = 317
+    LENGTH = 303,
+    NULLS = 304,
+    OBJECT = 305,
+    REPEAT = 306,
+    STRING = 307,
+    TO = 308,
+    TRUE = 309,
+    TYPE = 310,
+    VAL = 311,
+    VAR = 312,
+    WHILE = 313,
+    ID = 314,
+    LITERAL_CHAR = 315,
+    LITERAL_STRING = 316,
+    LITERAL_INTEGER = 317,
+    LITERAL_FLOAT = 318
   };
 #endif
 /* Tokens.  */
@@ -153,21 +154,22 @@ extern int yydebug;
 #define FOR 300
 #define IF 301
 #define INT 302
-#define NULLS 303
-#define OBJECT 304
-#define REPEAT 305
-#define STRING 306
-#define TO 307
-#define TRUE 308
-#define TYPE 309
-#define VAL 310
-#define VAR 311
-#define WHILE 312
-#define ID 313
-#define LITERAL_CHAR 314
-#define LITERAL_STRING 315
-#define LITERAL_INTEGER 316
-#define LITERAL_FLOAT 317
+#define LENGTH 303
+#define NULLS 304
+#define OBJECT 305
+#define REPEAT 306
+#define STRING 307
+#define TO 308
+#define TRUE 309
+#define TYPE 310
+#define VAL 311
+#define VAR 312
+#define WHILE 313
+#define ID 314
+#define LITERAL_CHAR 315
+#define LITERAL_STRING 316
+#define LITERAL_INTEGER 317
+#define LITERAL_FLOAT 318
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -183,7 +185,7 @@ union YYSTYPE
 	double f;
 	DataType dataType;
 
-#line 187 "y.tab.h" /* yacc.c:1909  */
+#line 189 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

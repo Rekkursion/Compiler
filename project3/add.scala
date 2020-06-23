@@ -6,13 +6,11 @@
 object example
 {
   // constants and variables
-  var n
+  val n = 10
   var sum: int
   var index: int
 
   def main () {
-	read n
-  
     sum = 0
     index = 0
     

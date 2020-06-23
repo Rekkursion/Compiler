@@ -217,6 +217,9 @@ if { bufText(yytext); token(IF); }
 	/* TOKEN: "int" -> keywords */
 int { bufText(yytext); token(INT); }
 
+	/* TOKEN: "length" -> keywords */
+length { bufText(yytext); token(LENGTH); }
+
 	/* TOKEN: "null" -> keywords */
 null { bufText(yytext); token(NULLS); }
 

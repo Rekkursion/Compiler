@@ -113,7 +113,7 @@
 	// the buffer of java assembly code
 	char* jBuf = NULL;
 	
-	// the temporally-saved the method when defining one
+	// the temporally-saved method when defining one
 	Item* methItem = NULL;
 	
 	// the flag to check if there's a pair of squared-brackets after an identifier or not
@@ -184,7 +184,7 @@
 /* tokens */
 %token COMMA COLON PERIOD SEMICOLON
 %token OPEN_PAR CLOSE_PAR OPEN_SQB CLOSE_SQB OPEN_BRA CLOSE_BRA
-%token ARROW_IN_FOR BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT NULLS OBJECT REPEAT STRING TO TRUE TYPE VAL VAR WHILE
+%token ARROW_IN_FOR BOOLEAN BREAK CHAR CASE CLASS CONTINUE DEF DO ELSE EXIT FALSE FLOAT FOR IF INT LENGTH NULLS OBJECT REPEAT STRING TO TRUE TYPE VAL VAR WHILE
 %token <s> ID
 %token <c> LITERAL_CHAR
 %token <s> LITERAL_STRING
@@ -338,6 +338,8 @@ val_dclr
 			Item* item = lookupInHashTable(assignee);
 			if (item != NULL)
 				item->constantVal = e->_i;
+			if (!inGlobal)
+				genJavaa("pop\n");
 		}
 		
 		free_e(e);
@@ -378,8 +380,16 @@ var_dclr
 		inGlobalVarDclr = 0;
 	}
 	| VAR identifier COLON data_type { setAssignee(); } OPEN_SQB expr CLOSE_SQB {
+		// e.g. var arr: int[5]
 		Enode* e = pop_e();
-		initNewId(assignee, _array, $4, (e == NULL) ? _none : e->_type);
+		initNewId(assignee, _array, $4, (e == NULL) ? _int : e->_type);
+		
+		if (e != NULL) {
+			Item* item = lookupInHashTable(assignee);
+			fgenJavaa("newarray %s\n", toS(item->dataType), NULL, NULL, NULL, NULL);
+			igenJavaa("astore ", item->localNum, "\n");
+		}
+		
 		free_e(e);
 		inGlobalVarDclr = 0;
 	}
@@ -526,7 +536,7 @@ opt_else
 stmt
 	: assignment %prec ASSIGNMENT
 	| func_invoc
-	| READ { clear_e(); } identifier { setAssignee(); ugenJavaa(ident); } opt_squared_brackets { checkUsageOfValVarArr(assignee, 1); }
+	| READ { clear_e(); } identifier { setAssignee(); ugenJavaa(ident); }
 	| RETURN expr %prec RETURN_W_EXPR {
 		returnFlag = 1; printFlag = 0; checkReturnType();
 		genJavaa("ireturn\n");
@@ -573,7 +583,7 @@ stmt
 
 /* the assignment of a/an val/var/arr */
 assignment
-	: identifier opt_squared_brackets '=' { setAssignee(); checkUsageOfValVarArr(assignee, 1); } expr {
+	: identifier { setAssignee(); } '=' expr {
 		Enode* e = pop_e();
 		if (e == NULL)
 			warn("No assigned value found in an assignment.");
@@ -598,12 +608,12 @@ assignment
 		}
 		free_e(e);
 	}
-	;
-
-/* optional squared brackets for an identifier */
-opt_squared_brackets
-	: OPEN_SQB expr CLOSE_SQB { squaredFlag = 1; }
-	| %empty { squaredFlag = 0; }
+	| identifier OPEN_SQB {
+		Item* aItem = lookupInHashTable(ident);
+		igenJavaa("aload ", aItem->localNum, "\n");
+	} expr CLOSE_SQB '=' expr {
+		genJavaa("iastore\n");
+	}
 	;
 
 /* the expression among literal values & identifiers (var/val/arr)
@@ -642,20 +652,21 @@ expr
 		free(s);
 	}
 /* identifier, including variable/constant and array */
-	| identifier opt_squared_brackets {
+	| identifier {
 		// get the identifier stored in the currently-scoped hash-table
 		Item* item = lookupInHashTable(ident);
-		// check if the identifier is used correctly or not
-		checkUsageOfValVarArr(ident, 0);
+		
 		// push the data-type back into the expr-stack
 		push_e((item == NULL) ? _none : item->dataType, NULL);
 		
+		// variable (or constant)
 		if (item != NULL && !inGlobal) {
 			// if this identifier is a constant, no need to check whether it is global or not, get the value from the symbol-table directly
 			if (item->itemType == _constant)
 				igenJavaa("ldc ", item->constantVal, "\n");
-			// otherwise, check if it is global or not
-			else {
+			
+			// if this identifier is a variable
+			else if (item->itemType == _variable) {
 				// this identifier is a global variable
 				if (item->isGlobalFlag == 1)
 					fgenJavaa("getstatic %s %s.%s\n", toS(item->dataType), objName, item->name, NULL, NULL);
@@ -664,6 +675,12 @@ expr
 					igenJavaa("iload ", item->localNum, "\n");
 			}
 		}
+	}
+	| identifier OPEN_SQB {
+		Item* aItem = lookupInHashTable(ident);
+		igenJavaa("aload ", aItem->localNum, "\n");
+	} expr CLOSE_SQB {
+		genJavaa("iaload\n");
 	}
 /* an expression which is wrapped by a pair of parentheses -> do nothing */
 	| OPEN_PAR expr CLOSE_PAR
@@ -676,6 +693,14 @@ expr
 		// push an Enode according to the return type of this invocated function
 		push_e((mItem == NULL || mItem->methDef == NULL) ? _none : mItem->methDef->_ret_type, NULL);
 		free_m(m_nd);
+	}
+/* the length of an array */
+	| identifier PERIOD LENGTH {
+		Item* aItem = lookupInHashTable(ident);
+		if (aItem != NULL) {
+			igenJavaa("aload ", aItem->localNum, "\n");
+			genJavaa("arraylength\n");
+		}
 	}
 	;
 
@@ -692,7 +717,6 @@ func_invoc
 			mItem = NULL;
 			fwarn("The identifier \"%s\" is NOT a method.", ident, NULL, NULL, NULL, NULL);
 		}
-		
 	} opt_actual_argus CLOSE_PAR {
 		Mnode* meth_nd = peek_m();
 		Item* mItem = NULL;
@@ -860,7 +884,7 @@ int insertIntoHashTable(const char* name, ItemType itemType, DataType dataType) 
 	
 	// try to insert the symbol into the latest hash-table
 	int insertionResult = insert(htail->table, name, htail->inGlobalFlag, localCounter);
-	if (itemType == _variable && htail->inGlobalFlag == 0)
+	if ((itemType == _variable || itemType == _array) && htail->inGlobalFlag == 0)
 		++localCounter;
 	
 	// insertion failed: the identifier has already been declared in the current scope
