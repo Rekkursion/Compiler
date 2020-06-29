@@ -1,41 +1,132 @@
-class example {
-field static int sum
-field static int index
-method public static void main(java.lang.String[])
+class dec2bin {
+method public static void toBin(int)
 max_stack 15
 max_locals 15
 {
+ldc 202
+newarray int
+astore 1
 ldc 0
-putstatic int example.sum
-ldc 0
-putstatic int example.index
+istore 2
+iload 0
+istore 3
+goto Lbegin_0
 Lbegin_0:
-getstatic int example.index
-ldc 10
+iload 0
+ldc 0
 isub
-ifle L0
+ifgt L0
 iconst_0
 goto L1
 L0:
 iconst_1
 L1:
 ifeq Lexit_0
-getstatic int example.sum
-getstatic int example.index
-iadd
-putstatic int example.sum
-getstatic int example.index
+aload 1
+iload 2
+iload 0
+ldc 2
+irem
+iastore
+iload 0
+ldc 2
+idiv
+istore 0
+iload 2
 ldc 1
 iadd
-putstatic int example.index
+istore 2
 goto Lbegin_0
 Lexit_0:
 getstatic java.io.PrintStream java.lang.System.out
-ldc "The sum is "
+ldc "The input value "
 invokevirtual void java.io.PrintStream.print(java.lang.String)
 getstatic java.io.PrintStream java.lang.System.out
-getstatic int example.sum
-invokevirtual void java.io.PrintStream.println(int)
+iload 3
+invokevirtual void java.io.PrintStream.print(int)
+getstatic java.io.PrintStream java.lang.System.out
+ldc "(10) equals to "
+invokevirtual void java.io.PrintStream.print(java.lang.String)
+iload 2
+ldc 0
+isub
+ifeq L2
+iconst_0
+goto L3
+L2:
+iconst_1
+L3:
+ifeq Lfalse_1
+getstatic java.io.PrintStream java.lang.System.out
+ldc 0
+invokevirtual void java.io.PrintStream.print(int)
+goto Lendif_1
+Lfalse_1:
+ldc 0
+istore 4
+Lbegin_2:
+iload 4
+iload 2
+ldc 1
+isub
+isub
+ifle L4
+iconst_0
+goto L5
+L4:
+iconst_1
+L5:
+ifeq Lexit_2
+getstatic java.io.PrintStream java.lang.System.out
+aload 1
+iload 2
+ldc 1
+isub
+iload 4
+isub
+iaload
+invokevirtual void java.io.PrintStream.print(int)
+iload 4
+ldc 1
+iadd
+istore 4
+goto Lbegin_2
+Lexit_2:
+goto Lendif_1
+Lendif_1:
+getstatic java.io.PrintStream java.lang.System.out
+ldc "(2)"
+invokevirtual void java.io.PrintStream.println(java.lang.String)
+return
+}
+method public static void main(java.lang.String[])
+max_stack 15
+max_locals 15
+{
+ldc 0
+istore 2
+Lread_begin_0:
+getstatic java.io.InputStream java.lang.System.in
+invokevirtual int java.io.InputStream.read()
+istore 1
+iload 1
+ldc 48
+isub
+iflt Lread_exit_0
+iload 1
+ldc 48
+isub
+iload 2
+ldc 10
+imul
+iadd
+istore 2
+goto Lread_begin_0
+Lread_exit_0:
+iload 2
+istore 0
+iload 0
+invokestatic void dec2bin.toBin(int)
 return
 }
 }

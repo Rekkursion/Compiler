@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.0.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.4"
+#define YYBISON_VERSION "3.0.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -371,7 +371,7 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
+typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
 #line 289 "javaa.y" /* yacc.c:355  */
@@ -476,8 +476,6 @@ union YYSTYPE
 
 #line 478 "javaa.tab.c" /* yacc.c:355  */
 };
-
-typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -501,7 +499,7 @@ int yyparse (void);
               TreeNode *, TreeNode *);
    static TreeNode *GenEntryArgs(TreeNode *);
 
-#line 505 "javaa.tab.c" /* yacc.c:358  */
+#line 503 "javaa.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -2090,13 +2088,13 @@ yyreduce:
         case 2:
 #line 403 "javaa.y" /* yacc.c:1646  */
     { InitAssembler();}
-#line 2094 "javaa.tab.c" /* yacc.c:1646  */
+#line 2092 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
 #line 404 "javaa.y" /* yacc.c:1646  */
     { EndAssembler();}
-#line 2100 "javaa.tab.c" /* yacc.c:1646  */
+#line 2098 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
@@ -2104,31 +2102,31 @@ yyreduce:
     {
 		SetThisClass((yyvsp[-6].intval), (yyvsp[-4].string), (yyvsp[-3].string));
 		}
-#line 2108 "javaa.tab.c" /* yacc.c:1646  */
+#line 2106 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
 #line 422 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = (yyvsp[-3].intval) | (yyvsp[-2].intval) | (yyvsp[-1].intval) | (yyvsp[0].intval);}
-#line 2114 "javaa.tab.c" /* yacc.c:1646  */
+#line 2112 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
 #line 426 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2120 "javaa.tab.c" /* yacc.c:1646  */
+#line 2118 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
 #line 427 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2126 "javaa.tab.c" /* yacc.c:1646  */
+#line 2124 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
 #line 433 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string);}
-#line 2132 "javaa.tab.c" /* yacc.c:1646  */
+#line 2130 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
@@ -2139,7 +2137,7 @@ yyreduce:
 	    strcpy(tempstring,"java/lang/Object");
 	    (yyval.string) = tempstring;
 	  }
-#line 2143 "javaa.tab.c" /* yacc.c:1646  */
+#line 2141 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
@@ -2147,7 +2145,7 @@ yyreduce:
     {
 		  (yyval.string) = ConsStrings((yyvsp[-2].string),ConsStrings("/",(yyvsp[0].string)));
 		}
-#line 2151 "javaa.tab.c" /* yacc.c:1646  */
+#line 2149 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
@@ -2155,7 +2153,7 @@ yyreduce:
     {
 		  (yyval.string) = (yyvsp[0].string);
 		}
-#line 2159 "javaa.tab.c" /* yacc.c:1646  */
+#line 2157 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
@@ -2165,7 +2163,7 @@ yyreduce:
 		  else (yyval.classfieldmethodstruct).classname = ConsStrings((yyvsp[-2].string),ConsStrings("/",(yyvsp[0].classfieldmethodstruct).classname));
 		  (yyval.classfieldmethodstruct).fieldmethodname = (yyvsp[0].classfieldmethodstruct).fieldmethodname;
 		}
-#line 2169 "javaa.tab.c" /* yacc.c:1646  */
+#line 2167 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
@@ -2174,7 +2172,7 @@ yyreduce:
 		  (yyval.classfieldmethodstruct).classname = GetThisClass();
 		  (yyval.classfieldmethodstruct).fieldmethodname = (yyvsp[0].string);
 		}
-#line 2178 "javaa.tab.c" /* yacc.c:1646  */
+#line 2176 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
@@ -2184,7 +2182,7 @@ yyreduce:
 		  else (yyval.classfieldmethodstruct).classname = ConsStrings((yyvsp[-2].string),ConsStrings("/",(yyvsp[0].classfieldmethodstruct).classname));
 		  (yyval.classfieldmethodstruct).fieldmethodname = (yyvsp[0].classfieldmethodstruct).fieldmethodname;
 		}
-#line 2188 "javaa.tab.c" /* yacc.c:1646  */
+#line 2186 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
@@ -2193,181 +2191,181 @@ yyreduce:
 		  (yyval.classfieldmethodstruct).classname = NULL;
 		  (yyval.classfieldmethodstruct).fieldmethodname = (yyvsp[0].string);
 		}
-#line 2197 "javaa.tab.c" /* yacc.c:1646  */
+#line 2195 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
 #line 482 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0400;}
-#line 2203 "javaa.tab.c" /* yacc.c:1646  */
+#line 2201 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
 #line 483 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2209 "javaa.tab.c" /* yacc.c:1646  */
+#line 2207 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
 #line 488 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0010;}
-#line 2215 "javaa.tab.c" /* yacc.c:1646  */
+#line 2213 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
 #line 489 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2221 "javaa.tab.c" /* yacc.c:1646  */
+#line 2219 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
 #line 494 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0001;}
-#line 2227 "javaa.tab.c" /* yacc.c:1646  */
+#line 2225 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
 #line 495 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2233 "javaa.tab.c" /* yacc.c:1646  */
+#line 2231 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
 #line 500 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0200;}
-#line 2239 "javaa.tab.c" /* yacc.c:1646  */
+#line 2237 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
 #line 501 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2245 "javaa.tab.c" /* yacc.c:1646  */
+#line 2243 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
 #line 506 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0008;}
-#line 2251 "javaa.tab.c" /* yacc.c:1646  */
+#line 2249 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
 #line 507 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2257 "javaa.tab.c" /* yacc.c:1646  */
+#line 2255 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
 #line 512 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0100;}
-#line 2263 "javaa.tab.c" /* yacc.c:1646  */
+#line 2261 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
 #line 513 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2269 "javaa.tab.c" /* yacc.c:1646  */
+#line 2267 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
 #line 518 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0020;}
-#line 2275 "javaa.tab.c" /* yacc.c:1646  */
+#line 2273 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
 #line 519 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2281 "javaa.tab.c" /* yacc.c:1646  */
+#line 2279 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
 #line 524 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0080;}
-#line 2287 "javaa.tab.c" /* yacc.c:1646  */
+#line 2285 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
 #line 525 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2293 "javaa.tab.c" /* yacc.c:1646  */
+#line 2291 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
 #line 530 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 0x0040;}
-#line 2299 "javaa.tab.c" /* yacc.c:1646  */
+#line 2297 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
 #line 531 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2305 "javaa.tab.c" /* yacc.c:1646  */
+#line 2303 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
 #line 536 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 2;}
-#line 2311 "javaa.tab.c" /* yacc.c:1646  */
+#line 2309 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
 #line 538 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 6;}
-#line 2317 "javaa.tab.c" /* yacc.c:1646  */
+#line 2315 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
 #line 540 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 4;}
-#line 2323 "javaa.tab.c" /* yacc.c:1646  */
+#line 2321 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
 #line 542 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = 1;}
-#line 2329 "javaa.tab.c" /* yacc.c:1646  */
+#line 2327 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
 #line 543 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=0;}
-#line 2335 "javaa.tab.c" /* yacc.c:1646  */
+#line 2333 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
 #line 548 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2341 "javaa.tab.c" /* yacc.c:1646  */
+#line 2339 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
 #line 549 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2347 "javaa.tab.c" /* yacc.c:1646  */
+#line 2345 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
 #line 554 "javaa.y" /* yacc.c:1646  */
     { AddToInterfaceList((yyvsp[0].string));}
-#line 2353 "javaa.tab.c" /* yacc.c:1646  */
+#line 2351 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
 #line 556 "javaa.y" /* yacc.c:1646  */
     { AddToInterfaceList((yyvsp[0].string));}
-#line 2359 "javaa.tab.c" /* yacc.c:1646  */
+#line 2357 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
 #line 561 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2365 "javaa.tab.c" /* yacc.c:1646  */
+#line 2363 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
 #line 565 "javaa.y" /* yacc.c:1646  */
     {NewField((yyvsp[-4].intval)|(yyvsp[-3].intval), (yyvsp[-1].string), (yyvsp[-2].string), (yyvsp[0].argtype));}
-#line 2371 "javaa.tab.c" /* yacc.c:1646  */
+#line 2369 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
@@ -2375,7 +2373,7 @@ yyreduce:
     {(yyval.argtype).type = INTCONSTANT;
               (yyval.argtype).intval = (yyvsp[0].intval);
              }
-#line 2379 "javaa.tab.c" /* yacc.c:1646  */
+#line 2377 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
@@ -2383,7 +2381,7 @@ yyreduce:
     {(yyval.argtype).type = FLOATCONSTANT;
               (yyval.argtype).floatval = (yyvsp[0].floatval);
              }
-#line 2387 "javaa.tab.c" /* yacc.c:1646  */
+#line 2385 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
@@ -2391,7 +2389,7 @@ yyreduce:
     {(yyval.argtype).type = LONGCONSTANT;
               (yyval.argtype).longval = (yyvsp[0].longval);
              }
-#line 2395 "javaa.tab.c" /* yacc.c:1646  */
+#line 2393 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
@@ -2399,32 +2397,32 @@ yyreduce:
     {(yyval.argtype).type = DOUBLECONSTANT;
               (yyval.argtype).doubleval = (yyvsp[0].doubleval);
              }
-#line 2403 "javaa.tab.c" /* yacc.c:1646  */
+#line 2401 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
 #line 586 "javaa.y" /* yacc.c:1646  */
     {(yyval.argtype).type = 0;
              }
-#line 2410 "javaa.tab.c" /* yacc.c:1646  */
+#line 2408 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
 #line 592 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = (yyvsp[-3].intval) | (yyvsp[-2].intval) | (yyvsp[-1].intval) | (yyvsp[0].intval) ;}
-#line 2416 "javaa.tab.c" /* yacc.c:1646  */
+#line 2414 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
 #line 597 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2422 "javaa.tab.c" /* yacc.c:1646  */
+#line 2420 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
 #line 601 "javaa.y" /* yacc.c:1646  */
     {NewNewMethod((yyvsp[-1].intval)|(yyvsp[0].intval));}
-#line 2428 "javaa.tab.c" /* yacc.c:1646  */
+#line 2426 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 58:
@@ -2435,55 +2433,55 @@ yyreduce:
 	    tmpstr = ConsStrings("(",ConsStrings((yyvsp[-5].string),ConsStrings(")",(yyvsp[-8].string))));
 	    /*message(tmpstr);*/
 	    NewMethod((yyvsp[-7].string), tmpstr, (yyvsp[-1].intval), (yyvsp[0].intval)); }
-#line 2439 "javaa.tab.c" /* yacc.c:1646  */
+#line 2437 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 59:
 #line 618 "javaa.y" /* yacc.c:1646  */
     {EndMethod();}
-#line 2445 "javaa.tab.c" /* yacc.c:1646  */
+#line 2443 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 60:
 #line 623 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2451 "javaa.tab.c" /* yacc.c:1646  */
+#line 2449 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 61:
 #line 624 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2457 "javaa.tab.c" /* yacc.c:1646  */
+#line 2455 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 62:
 #line 629 "javaa.y" /* yacc.c:1646  */
     {AddToThrowsList((yyvsp[0].string));}
-#line 2463 "javaa.tab.c" /* yacc.c:1646  */
+#line 2461 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 63:
 #line 631 "javaa.y" /* yacc.c:1646  */
     {AddToThrowsList((yyvsp[0].string));}
-#line 2469 "javaa.tab.c" /* yacc.c:1646  */
+#line 2467 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 64:
 #line 636 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = (yyvsp[0].intval);}
-#line 2475 "javaa.tab.c" /* yacc.c:1646  */
+#line 2473 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 65:
 #line 637 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval) = -1;}
-#line 2481 "javaa.tab.c" /* yacc.c:1646  */
+#line 2479 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 66:
 #line 642 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string); }
-#line 2487 "javaa.tab.c" /* yacc.c:1646  */
+#line 2485 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 67:
@@ -2493,19 +2491,19 @@ yyreduce:
 	     	  strcpy(tempstring,"V");
 	     	  (yyval.string) = tempstring;
 	  	}
-#line 2497 "javaa.tab.c" /* yacc.c:1646  */
+#line 2495 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 68:
 #line 653 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string);}
-#line 2503 "javaa.tab.c" /* yacc.c:1646  */
+#line 2501 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 69:
 #line 654 "javaa.y" /* yacc.c:1646  */
     {(yyval.string) = NULL;}
-#line 2509 "javaa.tab.c" /* yacc.c:1646  */
+#line 2507 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 70:
@@ -2514,25 +2512,25 @@ yyreduce:
 		  /*message("in arguments with comma.");*/
 		  (yyval.string) = ConsStrings((yyvsp[-2].string),(yyvsp[0].string));
 		}
-#line 2518 "javaa.tab.c" /* yacc.c:1646  */
+#line 2516 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 71:
 #line 663 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string); /*message("in arguments");*/}
-#line 2524 "javaa.tab.c" /* yacc.c:1646  */
+#line 2522 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 72:
 #line 669 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string);}
-#line 2530 "javaa.tab.c" /* yacc.c:1646  */
+#line 2528 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 73:
 #line 670 "javaa.y" /* yacc.c:1646  */
     {(yyval.string) = NULL;}
-#line 2536 "javaa.tab.c" /* yacc.c:1646  */
+#line 2534 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 74:
@@ -2541,13 +2539,13 @@ yyreduce:
 		  /*message("in arguments with comma.");*/
 		  (yyval.string) = ConsStrings((yyvsp[-2].string),(yyvsp[0].string));
 		}
-#line 2545 "javaa.tab.c" /* yacc.c:1646  */
+#line 2543 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 75:
 #line 679 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[0].string); /*message("in arguments");*/}
-#line 2551 "javaa.tab.c" /* yacc.c:1646  */
+#line 2549 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 76:
@@ -2555,13 +2553,13 @@ yyreduce:
     { (yyval.string) = (yyvsp[0].string); 
 		  /*message("calling IncrementLocalVarSlot");*/
 		  IncrementLocalVarSlot((yyvsp[0].string)); /*message("in methodargument");*/}
-#line 2559 "javaa.tab.c" /* yacc.c:1646  */
+#line 2557 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 77:
 #line 686 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = (yyvsp[-1].string); NewLocalVar((yyvsp[0].string), (yyvsp[-1].string));/*message("in methodargument");*/}
-#line 2565 "javaa.tab.c" /* yacc.c:1646  */
+#line 2563 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 78:
@@ -2570,55 +2568,55 @@ yyreduce:
 		  /*message("In type.");*/
 		  (yyval.string) = ConsStrings((yyvsp[0].string),(yyvsp[-1].string));
 		}
-#line 2574 "javaa.tab.c" /* yacc.c:1646  */
+#line 2572 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 79:
 #line 698 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("B",""); }
-#line 2580 "javaa.tab.c" /* yacc.c:1646  */
+#line 2578 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 80:
 #line 700 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("C",""); }
-#line 2586 "javaa.tab.c" /* yacc.c:1646  */
+#line 2584 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 81:
 #line 702 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("D",""); }
-#line 2592 "javaa.tab.c" /* yacc.c:1646  */
+#line 2590 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 82:
 #line 704 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("F",""); }
-#line 2598 "javaa.tab.c" /* yacc.c:1646  */
+#line 2596 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 83:
 #line 706 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("I",""); }
-#line 2604 "javaa.tab.c" /* yacc.c:1646  */
+#line 2602 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 84:
 #line 708 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("J",""); }
-#line 2610 "javaa.tab.c" /* yacc.c:1646  */
+#line 2608 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 85:
 #line 710 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("S",""); }
-#line 2616 "javaa.tab.c" /* yacc.c:1646  */
+#line 2614 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 86:
 #line 712 "javaa.y" /* yacc.c:1646  */
     { (yyval.string) = ConsStrings("Z",""); }
-#line 2622 "javaa.tab.c" /* yacc.c:1646  */
+#line 2620 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 87:
@@ -2627,112 +2625,112 @@ yyreduce:
 		 (yyval.string) = ConsStrings("L", ConsStrings((yyvsp[0].string),";"));
 	   	 /*message($$);*/
 		 /*message("Got classname.");*/}
-#line 2631 "javaa.tab.c" /* yacc.c:1646  */
+#line 2629 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 88:
 #line 722 "javaa.y" /* yacc.c:1646  */
     {(yyval.string) = ConsStrings("[",(yyvsp[0].string));}
-#line 2637 "javaa.tab.c" /* yacc.c:1646  */
+#line 2635 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 89:
 #line 723 "javaa.y" /* yacc.c:1646  */
     {(yyval.string)=NULL;}
-#line 2643 "javaa.tab.c" /* yacc.c:1646  */
+#line 2641 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 90:
 #line 729 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = (yyvsp[-4].intval) | (yyvsp[-3].intval) | (yyvsp[-2].intval) | (yyvsp[-1].intval) | (yyvsp[0].intval);}
-#line 2649 "javaa.tab.c" /* yacc.c:1646  */
+#line 2647 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 91:
 #line 733 "javaa.y" /* yacc.c:1646  */
     {NewLocalVar((yyvsp[0].string), (yyvsp[-1].string));}
-#line 2655 "javaa.tab.c" /* yacc.c:1646  */
+#line 2653 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 92:
 #line 738 "javaa.y" /* yacc.c:1646  */
     {(yyval.string) = (yyvsp[0].string);}
-#line 2661 "javaa.tab.c" /* yacc.c:1646  */
+#line 2659 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 93:
 #line 740 "javaa.y" /* yacc.c:1646  */
     {(yyval.string) = ConsStrings("[",ConsStrings((yyvsp[0].string),(yyvsp[-3].string)));}
-#line 2667 "javaa.tab.c" /* yacc.c:1646  */
+#line 2665 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 94:
 #line 745 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2673 "javaa.tab.c" /* yacc.c:1646  */
+#line 2671 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 95:
 #line 749 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2679 "javaa.tab.c" /* yacc.c:1646  */
+#line 2677 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 96:
 #line 751 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2685 "javaa.tab.c" /* yacc.c:1646  */
+#line 2683 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 97:
 #line 755 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2691 "javaa.tab.c" /* yacc.c:1646  */
+#line 2689 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 98:
 #line 757 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2697 "javaa.tab.c" /* yacc.c:1646  */
+#line 2695 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 99:
 #line 759 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2703 "javaa.tab.c" /* yacc.c:1646  */
+#line 2701 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 100:
 #line 761 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 2709 "javaa.tab.c" /* yacc.c:1646  */
+#line 2707 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 101:
 #line 765 "javaa.y" /* yacc.c:1646  */
     {DefineLabel((yyvsp[0].string));}
-#line 2715 "javaa.tab.c" /* yacc.c:1646  */
+#line 2713 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 102:
 #line 769 "javaa.y" /* yacc.c:1646  */
     {GenNoArgCode((yyvsp[0].intval));
 		}
-#line 2722 "javaa.tab.c" /* yacc.c:1646  */
+#line 2720 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 103:
 #line 772 "javaa.y" /* yacc.c:1646  */
     {GenOneArgCode((yyvsp[-1].intval), (yyvsp[0].argtype));
 		}
-#line 2729 "javaa.tab.c" /* yacc.c:1646  */
+#line 2727 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 104:
 #line 775 "javaa.y" /* yacc.c:1646  */
     {GenFieldArgCode((yyvsp[-2].intval), (yyvsp[0].classfieldmethodstruct).classname, (yyvsp[0].classfieldmethodstruct).fieldmethodname, (yyvsp[-1].string));
 		}
-#line 2736 "javaa.tab.c" /* yacc.c:1646  */
+#line 2734 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 105:
@@ -2741,21 +2739,21 @@ yyreduce:
 		         	 ConsStrings("(",ConsStrings((yyvsp[-1].string),
 				   ConsStrings(")",(yyvsp[-4].string))))); 
 		}
-#line 2745 "javaa.tab.c" /* yacc.c:1646  */
+#line 2743 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 106:
 #line 784 "javaa.y" /* yacc.c:1646  */
     {GenClassArgCode((yyvsp[-1].intval), (yyvsp[0].string));
 		}
-#line 2752 "javaa.tab.c" /* yacc.c:1646  */
+#line 2750 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 107:
 #line 787 "javaa.y" /* yacc.c:1646  */
     {GenClassArgCode((yyvsp[-1].Rk).terminal, (yyvsp[0].string));
 		}
-#line 2759 "javaa.tab.c" /* yacc.c:1646  */
+#line 2757 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 108:
@@ -2765,1316 +2763,1316 @@ yyreduce:
 		         	 ConsStrings("(",ConsStrings((yyvsp[-2].string),
 				   ConsStrings(")",(yyvsp[-5].string)))), (yyvsp[0].intval)); 
 		}
-#line 2769 "javaa.tab.c" /* yacc.c:1646  */
+#line 2767 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 109:
 #line 797 "javaa.y" /* yacc.c:1646  */
     {GenLabelArgCode((yyvsp[-1].intval), (yyvsp[0].string));
 		}
-#line 2776 "javaa.tab.c" /* yacc.c:1646  */
+#line 2774 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 110:
 #line 800 "javaa.y" /* yacc.c:1646  */
     {GenLocalVarArgCode((yyvsp[-1].intval),(yyvsp[0].intval));
 		}
-#line 2783 "javaa.tab.c" /* yacc.c:1646  */
+#line 2781 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 111:
 #line 803 "javaa.y" /* yacc.c:1646  */
     {GenIINCCode((yyvsp[-2].Rk).terminal,(yyvsp[-1].intval),(yyvsp[0].intval));
 		}
-#line 2790 "javaa.tab.c" /* yacc.c:1646  */
+#line 2788 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 112:
 #line 806 "javaa.y" /* yacc.c:1646  */
     {GenLOOKUPSWITCHCode((yyvsp[-5].Rk).terminal,(yyvsp[-3].string),(yyvsp[-1].lookuplistptr));
 		}
-#line 2797 "javaa.tab.c" /* yacc.c:1646  */
+#line 2795 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 113:
 #line 810 "javaa.y" /* yacc.c:1646  */
     {GenTABLESWITCHCode((yyvsp[-8].Rk).terminal,(yyvsp[-7].intval),(yyvsp[-5].intval),(yyvsp[-3].string),(yyvsp[-1].tablelistptr));
 		}
-#line 2804 "javaa.tab.c" /* yacc.c:1646  */
+#line 2802 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 114:
 #line 813 "javaa.y" /* yacc.c:1646  */
     {GenMULTIANEWARRAYCode((yyvsp[-2].Rk).terminal,(yyvsp[-1].string),(yyvsp[0].intval));
 		}
-#line 2811 "javaa.tab.c" /* yacc.c:1646  */
+#line 2809 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 115:
 #line 816 "javaa.y" /* yacc.c:1646  */
     {GenNEWARRAYCode((yyvsp[-1].Rk).terminal,(yyvsp[0].intval));
 		}
-#line 2818 "javaa.tab.c" /* yacc.c:1646  */
+#line 2816 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 116:
 #line 821 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2824 "javaa.tab.c" /* yacc.c:1646  */
+#line 2822 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 117:
 #line 823 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2830 "javaa.tab.c" /* yacc.c:1646  */
+#line 2828 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 118:
 #line 825 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2836 "javaa.tab.c" /* yacc.c:1646  */
+#line 2834 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 119:
 #line 827 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2842 "javaa.tab.c" /* yacc.c:1646  */
+#line 2840 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 120:
 #line 829 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2848 "javaa.tab.c" /* yacc.c:1646  */
+#line 2846 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 121:
 #line 831 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2854 "javaa.tab.c" /* yacc.c:1646  */
+#line 2852 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 122:
 #line 833 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2860 "javaa.tab.c" /* yacc.c:1646  */
+#line 2858 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 123:
 #line 835 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2866 "javaa.tab.c" /* yacc.c:1646  */
+#line 2864 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 124:
 #line 837 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2872 "javaa.tab.c" /* yacc.c:1646  */
+#line 2870 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 125:
 #line 839 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2878 "javaa.tab.c" /* yacc.c:1646  */
+#line 2876 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 126:
 #line 841 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2884 "javaa.tab.c" /* yacc.c:1646  */
+#line 2882 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 127:
 #line 843 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2890 "javaa.tab.c" /* yacc.c:1646  */
+#line 2888 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 128:
 #line 845 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2896 "javaa.tab.c" /* yacc.c:1646  */
+#line 2894 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 129:
 #line 847 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2902 "javaa.tab.c" /* yacc.c:1646  */
+#line 2900 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 130:
 #line 849 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2908 "javaa.tab.c" /* yacc.c:1646  */
+#line 2906 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 131:
 #line 851 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2914 "javaa.tab.c" /* yacc.c:1646  */
+#line 2912 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 132:
 #line 853 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2920 "javaa.tab.c" /* yacc.c:1646  */
+#line 2918 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 133:
 #line 855 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2926 "javaa.tab.c" /* yacc.c:1646  */
+#line 2924 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 134:
 #line 857 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2932 "javaa.tab.c" /* yacc.c:1646  */
+#line 2930 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 135:
 #line 859 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2938 "javaa.tab.c" /* yacc.c:1646  */
+#line 2936 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 136:
 #line 861 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2944 "javaa.tab.c" /* yacc.c:1646  */
+#line 2942 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 137:
 #line 863 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2950 "javaa.tab.c" /* yacc.c:1646  */
+#line 2948 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 138:
 #line 865 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2956 "javaa.tab.c" /* yacc.c:1646  */
+#line 2954 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 139:
 #line 867 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2962 "javaa.tab.c" /* yacc.c:1646  */
+#line 2960 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 140:
 #line 869 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2968 "javaa.tab.c" /* yacc.c:1646  */
+#line 2966 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 141:
 #line 871 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2974 "javaa.tab.c" /* yacc.c:1646  */
+#line 2972 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 142:
 #line 873 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2980 "javaa.tab.c" /* yacc.c:1646  */
+#line 2978 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 143:
 #line 875 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2986 "javaa.tab.c" /* yacc.c:1646  */
+#line 2984 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 144:
 #line 877 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2992 "javaa.tab.c" /* yacc.c:1646  */
+#line 2990 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 145:
 #line 879 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 2998 "javaa.tab.c" /* yacc.c:1646  */
+#line 2996 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 146:
 #line 881 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3004 "javaa.tab.c" /* yacc.c:1646  */
+#line 3002 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 147:
 #line 883 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3010 "javaa.tab.c" /* yacc.c:1646  */
+#line 3008 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 148:
 #line 885 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3016 "javaa.tab.c" /* yacc.c:1646  */
+#line 3014 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 149:
 #line 887 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3022 "javaa.tab.c" /* yacc.c:1646  */
+#line 3020 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 150:
 #line 889 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3028 "javaa.tab.c" /* yacc.c:1646  */
+#line 3026 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 151:
 #line 891 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3034 "javaa.tab.c" /* yacc.c:1646  */
+#line 3032 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 152:
 #line 893 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3040 "javaa.tab.c" /* yacc.c:1646  */
+#line 3038 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 153:
 #line 895 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3046 "javaa.tab.c" /* yacc.c:1646  */
+#line 3044 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 154:
 #line 897 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3052 "javaa.tab.c" /* yacc.c:1646  */
+#line 3050 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 155:
 #line 899 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3058 "javaa.tab.c" /* yacc.c:1646  */
+#line 3056 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 156:
 #line 901 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3064 "javaa.tab.c" /* yacc.c:1646  */
+#line 3062 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 157:
 #line 903 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3070 "javaa.tab.c" /* yacc.c:1646  */
+#line 3068 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 158:
 #line 905 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3076 "javaa.tab.c" /* yacc.c:1646  */
+#line 3074 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 159:
 #line 907 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3082 "javaa.tab.c" /* yacc.c:1646  */
+#line 3080 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 160:
 #line 909 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3088 "javaa.tab.c" /* yacc.c:1646  */
+#line 3086 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 161:
 #line 911 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3094 "javaa.tab.c" /* yacc.c:1646  */
+#line 3092 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 162:
 #line 913 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3100 "javaa.tab.c" /* yacc.c:1646  */
+#line 3098 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 163:
 #line 915 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3106 "javaa.tab.c" /* yacc.c:1646  */
+#line 3104 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 164:
 #line 917 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3112 "javaa.tab.c" /* yacc.c:1646  */
+#line 3110 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 165:
 #line 919 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3118 "javaa.tab.c" /* yacc.c:1646  */
+#line 3116 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 166:
 #line 921 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3124 "javaa.tab.c" /* yacc.c:1646  */
+#line 3122 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 167:
 #line 923 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3130 "javaa.tab.c" /* yacc.c:1646  */
+#line 3128 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 168:
 #line 925 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3136 "javaa.tab.c" /* yacc.c:1646  */
+#line 3134 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 169:
 #line 927 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3142 "javaa.tab.c" /* yacc.c:1646  */
+#line 3140 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 170:
 #line 929 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3148 "javaa.tab.c" /* yacc.c:1646  */
+#line 3146 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 171:
 #line 931 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3154 "javaa.tab.c" /* yacc.c:1646  */
+#line 3152 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 172:
 #line 933 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3160 "javaa.tab.c" /* yacc.c:1646  */
+#line 3158 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 173:
 #line 935 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3166 "javaa.tab.c" /* yacc.c:1646  */
+#line 3164 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 174:
 #line 937 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3172 "javaa.tab.c" /* yacc.c:1646  */
+#line 3170 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 175:
 #line 939 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3178 "javaa.tab.c" /* yacc.c:1646  */
+#line 3176 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 176:
 #line 941 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3184 "javaa.tab.c" /* yacc.c:1646  */
+#line 3182 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 177:
 #line 943 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3190 "javaa.tab.c" /* yacc.c:1646  */
+#line 3188 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 178:
 #line 945 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3196 "javaa.tab.c" /* yacc.c:1646  */
+#line 3194 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 179:
 #line 947 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3202 "javaa.tab.c" /* yacc.c:1646  */
+#line 3200 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 180:
 #line 949 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3208 "javaa.tab.c" /* yacc.c:1646  */
+#line 3206 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 181:
 #line 951 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3214 "javaa.tab.c" /* yacc.c:1646  */
+#line 3212 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 182:
 #line 953 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3220 "javaa.tab.c" /* yacc.c:1646  */
+#line 3218 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 183:
 #line 955 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3226 "javaa.tab.c" /* yacc.c:1646  */
+#line 3224 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 184:
 #line 957 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3232 "javaa.tab.c" /* yacc.c:1646  */
+#line 3230 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 185:
 #line 959 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3238 "javaa.tab.c" /* yacc.c:1646  */
+#line 3236 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 186:
 #line 961 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3244 "javaa.tab.c" /* yacc.c:1646  */
+#line 3242 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 187:
 #line 963 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3250 "javaa.tab.c" /* yacc.c:1646  */
+#line 3248 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 188:
 #line 965 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3256 "javaa.tab.c" /* yacc.c:1646  */
+#line 3254 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 189:
 #line 967 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3262 "javaa.tab.c" /* yacc.c:1646  */
+#line 3260 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 190:
 #line 969 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3268 "javaa.tab.c" /* yacc.c:1646  */
+#line 3266 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 191:
 #line 971 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3274 "javaa.tab.c" /* yacc.c:1646  */
+#line 3272 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 192:
 #line 973 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3280 "javaa.tab.c" /* yacc.c:1646  */
+#line 3278 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 193:
 #line 975 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3286 "javaa.tab.c" /* yacc.c:1646  */
+#line 3284 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 194:
 #line 977 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3292 "javaa.tab.c" /* yacc.c:1646  */
+#line 3290 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 195:
 #line 979 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3298 "javaa.tab.c" /* yacc.c:1646  */
+#line 3296 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 196:
 #line 981 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3304 "javaa.tab.c" /* yacc.c:1646  */
+#line 3302 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 197:
 #line 983 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3310 "javaa.tab.c" /* yacc.c:1646  */
+#line 3308 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 198:
 #line 985 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3316 "javaa.tab.c" /* yacc.c:1646  */
+#line 3314 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 199:
 #line 987 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3322 "javaa.tab.c" /* yacc.c:1646  */
+#line 3320 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 200:
 #line 989 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3328 "javaa.tab.c" /* yacc.c:1646  */
+#line 3326 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 201:
 #line 991 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3334 "javaa.tab.c" /* yacc.c:1646  */
+#line 3332 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 202:
 #line 993 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3340 "javaa.tab.c" /* yacc.c:1646  */
+#line 3338 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 203:
 #line 995 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3346 "javaa.tab.c" /* yacc.c:1646  */
+#line 3344 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 204:
 #line 997 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3352 "javaa.tab.c" /* yacc.c:1646  */
+#line 3350 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 205:
 #line 999 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3358 "javaa.tab.c" /* yacc.c:1646  */
+#line 3356 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 206:
 #line 1001 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3364 "javaa.tab.c" /* yacc.c:1646  */
+#line 3362 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 207:
 #line 1003 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3370 "javaa.tab.c" /* yacc.c:1646  */
+#line 3368 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 208:
 #line 1005 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3376 "javaa.tab.c" /* yacc.c:1646  */
+#line 3374 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 209:
 #line 1007 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3382 "javaa.tab.c" /* yacc.c:1646  */
+#line 3380 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 210:
 #line 1009 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3388 "javaa.tab.c" /* yacc.c:1646  */
+#line 3386 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 211:
 #line 1011 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3394 "javaa.tab.c" /* yacc.c:1646  */
+#line 3392 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 212:
 #line 1013 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3400 "javaa.tab.c" /* yacc.c:1646  */
+#line 3398 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 213:
 #line 1015 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3406 "javaa.tab.c" /* yacc.c:1646  */
+#line 3404 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 214:
 #line 1017 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3412 "javaa.tab.c" /* yacc.c:1646  */
+#line 3410 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 215:
 #line 1019 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3418 "javaa.tab.c" /* yacc.c:1646  */
+#line 3416 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 216:
 #line 1021 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3424 "javaa.tab.c" /* yacc.c:1646  */
+#line 3422 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 217:
 #line 1023 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3430 "javaa.tab.c" /* yacc.c:1646  */
+#line 3428 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 218:
 #line 1025 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3436 "javaa.tab.c" /* yacc.c:1646  */
+#line 3434 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 219:
 #line 1027 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3442 "javaa.tab.c" /* yacc.c:1646  */
+#line 3440 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 220:
 #line 1029 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3448 "javaa.tab.c" /* yacc.c:1646  */
+#line 3446 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 221:
 #line 1031 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3454 "javaa.tab.c" /* yacc.c:1646  */
+#line 3452 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 222:
 #line 1033 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3460 "javaa.tab.c" /* yacc.c:1646  */
+#line 3458 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 223:
 #line 1035 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3466 "javaa.tab.c" /* yacc.c:1646  */
+#line 3464 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 224:
 #line 1037 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3472 "javaa.tab.c" /* yacc.c:1646  */
+#line 3470 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 225:
 #line 1039 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3478 "javaa.tab.c" /* yacc.c:1646  */
+#line 3476 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 226:
 #line 1041 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3484 "javaa.tab.c" /* yacc.c:1646  */
+#line 3482 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 227:
 #line 1043 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3490 "javaa.tab.c" /* yacc.c:1646  */
+#line 3488 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 228:
 #line 1045 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3496 "javaa.tab.c" /* yacc.c:1646  */
+#line 3494 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 229:
 #line 1047 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3502 "javaa.tab.c" /* yacc.c:1646  */
+#line 3500 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 230:
 #line 1049 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3508 "javaa.tab.c" /* yacc.c:1646  */
+#line 3506 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 231:
 #line 1051 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3514 "javaa.tab.c" /* yacc.c:1646  */
+#line 3512 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 232:
 #line 1053 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3520 "javaa.tab.c" /* yacc.c:1646  */
+#line 3518 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 233:
 #line 1055 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3526 "javaa.tab.c" /* yacc.c:1646  */
+#line 3524 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 234:
 #line 1057 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3532 "javaa.tab.c" /* yacc.c:1646  */
+#line 3530 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 235:
 #line 1059 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3538 "javaa.tab.c" /* yacc.c:1646  */
+#line 3536 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 236:
 #line 1061 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3544 "javaa.tab.c" /* yacc.c:1646  */
+#line 3542 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 237:
 #line 1063 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3550 "javaa.tab.c" /* yacc.c:1646  */
+#line 3548 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 238:
 #line 1065 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3556 "javaa.tab.c" /* yacc.c:1646  */
+#line 3554 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 239:
 #line 1067 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3562 "javaa.tab.c" /* yacc.c:1646  */
+#line 3560 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 240:
 #line 1069 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3568 "javaa.tab.c" /* yacc.c:1646  */
+#line 3566 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 241:
 #line 1071 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3574 "javaa.tab.c" /* yacc.c:1646  */
+#line 3572 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 242:
 #line 1073 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3580 "javaa.tab.c" /* yacc.c:1646  */
+#line 3578 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 243:
 #line 1075 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3586 "javaa.tab.c" /* yacc.c:1646  */
+#line 3584 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 244:
 #line 1077 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3592 "javaa.tab.c" /* yacc.c:1646  */
+#line 3590 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 245:
 #line 1079 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3598 "javaa.tab.c" /* yacc.c:1646  */
+#line 3596 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 246:
 #line 1081 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3604 "javaa.tab.c" /* yacc.c:1646  */
+#line 3602 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 247:
 #line 1083 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3610 "javaa.tab.c" /* yacc.c:1646  */
+#line 3608 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 248:
 #line 1085 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3616 "javaa.tab.c" /* yacc.c:1646  */
+#line 3614 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 249:
 #line 1087 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3622 "javaa.tab.c" /* yacc.c:1646  */
+#line 3620 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 250:
 #line 1089 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3628 "javaa.tab.c" /* yacc.c:1646  */
+#line 3626 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 251:
 #line 1091 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3634 "javaa.tab.c" /* yacc.c:1646  */
+#line 3632 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 252:
 #line 1093 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3640 "javaa.tab.c" /* yacc.c:1646  */
+#line 3638 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 253:
 #line 1095 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3646 "javaa.tab.c" /* yacc.c:1646  */
+#line 3644 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 254:
 #line 1097 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3652 "javaa.tab.c" /* yacc.c:1646  */
+#line 3650 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 255:
 #line 1099 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3658 "javaa.tab.c" /* yacc.c:1646  */
+#line 3656 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 256:
 #line 1101 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3664 "javaa.tab.c" /* yacc.c:1646  */
+#line 3662 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 257:
 #line 1103 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3670 "javaa.tab.c" /* yacc.c:1646  */
+#line 3668 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 258:
 #line 1105 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3676 "javaa.tab.c" /* yacc.c:1646  */
+#line 3674 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 259:
 #line 1107 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3682 "javaa.tab.c" /* yacc.c:1646  */
+#line 3680 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 260:
 #line 1109 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3688 "javaa.tab.c" /* yacc.c:1646  */
+#line 3686 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 261:
 #line 1111 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3694 "javaa.tab.c" /* yacc.c:1646  */
+#line 3692 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 262:
 #line 1113 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3700 "javaa.tab.c" /* yacc.c:1646  */
+#line 3698 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 263:
 #line 1115 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3706 "javaa.tab.c" /* yacc.c:1646  */
+#line 3704 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 264:
 #line 1119 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3712 "javaa.tab.c" /* yacc.c:1646  */
+#line 3710 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 265:
 #line 1121 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3718 "javaa.tab.c" /* yacc.c:1646  */
+#line 3716 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 266:
 #line 1123 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3724 "javaa.tab.c" /* yacc.c:1646  */
+#line 3722 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 267:
 #line 1125 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3730 "javaa.tab.c" /* yacc.c:1646  */
+#line 3728 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 268:
 #line 1127 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3736 "javaa.tab.c" /* yacc.c:1646  */
+#line 3734 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 269:
 #line 1133 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3742 "javaa.tab.c" /* yacc.c:1646  */
+#line 3740 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 270:
 #line 1135 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3748 "javaa.tab.c" /* yacc.c:1646  */
+#line 3746 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 271:
 #line 1137 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3754 "javaa.tab.c" /* yacc.c:1646  */
+#line 3752 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 272:
 #line 1142 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3760 "javaa.tab.c" /* yacc.c:1646  */
+#line 3758 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 273:
 #line 1144 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3766 "javaa.tab.c" /* yacc.c:1646  */
+#line 3764 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 274:
 #line 1146 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3772 "javaa.tab.c" /* yacc.c:1646  */
+#line 3770 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 275:
 #line 1148 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3778 "javaa.tab.c" /* yacc.c:1646  */
+#line 3776 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 276:
 #line 1153 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3784 "javaa.tab.c" /* yacc.c:1646  */
+#line 3782 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 277:
 #line 1155 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3790 "javaa.tab.c" /* yacc.c:1646  */
+#line 3788 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 278:
 #line 1157 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3796 "javaa.tab.c" /* yacc.c:1646  */
+#line 3794 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 279:
 #line 1161 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3802 "javaa.tab.c" /* yacc.c:1646  */
+#line 3800 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 280:
 #line 1163 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3808 "javaa.tab.c" /* yacc.c:1646  */
+#line 3806 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 281:
 #line 1165 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3814 "javaa.tab.c" /* yacc.c:1646  */
+#line 3812 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 282:
 #line 1167 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3820 "javaa.tab.c" /* yacc.c:1646  */
+#line 3818 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 283:
 #line 1169 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3826 "javaa.tab.c" /* yacc.c:1646  */
+#line 3824 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 284:
 #line 1171 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3832 "javaa.tab.c" /* yacc.c:1646  */
+#line 3830 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 285:
 #line 1173 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3838 "javaa.tab.c" /* yacc.c:1646  */
+#line 3836 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 286:
 #line 1175 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3844 "javaa.tab.c" /* yacc.c:1646  */
+#line 3842 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 287:
 #line 1177 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3850 "javaa.tab.c" /* yacc.c:1646  */
+#line 3848 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 288:
 #line 1179 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3856 "javaa.tab.c" /* yacc.c:1646  */
+#line 3854 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 289:
 #line 1181 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3862 "javaa.tab.c" /* yacc.c:1646  */
+#line 3860 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 290:
 #line 1183 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3868 "javaa.tab.c" /* yacc.c:1646  */
+#line 3866 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 291:
 #line 1185 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3874 "javaa.tab.c" /* yacc.c:1646  */
+#line 3872 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 292:
 #line 1187 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3880 "javaa.tab.c" /* yacc.c:1646  */
+#line 3878 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 293:
 #line 1189 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3886 "javaa.tab.c" /* yacc.c:1646  */
+#line 3884 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 294:
 #line 1191 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3892 "javaa.tab.c" /* yacc.c:1646  */
+#line 3890 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 295:
 #line 1193 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3898 "javaa.tab.c" /* yacc.c:1646  */
+#line 3896 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 296:
 #line 1195 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3904 "javaa.tab.c" /* yacc.c:1646  */
+#line 3902 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 297:
 #line 1197 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3910 "javaa.tab.c" /* yacc.c:1646  */
+#line 3908 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 298:
 #line 1199 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3916 "javaa.tab.c" /* yacc.c:1646  */
+#line 3914 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 299:
 #line 1204 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3922 "javaa.tab.c" /* yacc.c:1646  */
+#line 3920 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 300:
 #line 1206 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3928 "javaa.tab.c" /* yacc.c:1646  */
+#line 3926 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 301:
 #line 1208 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3934 "javaa.tab.c" /* yacc.c:1646  */
+#line 3932 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 302:
 #line 1210 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3940 "javaa.tab.c" /* yacc.c:1646  */
+#line 3938 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 303:
 #line 1212 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3946 "javaa.tab.c" /* yacc.c:1646  */
+#line 3944 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 304:
 #line 1214 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3952 "javaa.tab.c" /* yacc.c:1646  */
+#line 3950 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 305:
 #line 1216 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3958 "javaa.tab.c" /* yacc.c:1646  */
+#line 3956 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 306:
 #line 1218 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3964 "javaa.tab.c" /* yacc.c:1646  */
+#line 3962 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 307:
 #line 1220 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3970 "javaa.tab.c" /* yacc.c:1646  */
+#line 3968 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 308:
 #line 1222 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3976 "javaa.tab.c" /* yacc.c:1646  */
+#line 3974 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 309:
 #line 1224 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3982 "javaa.tab.c" /* yacc.c:1646  */
+#line 3980 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 310:
 #line 1226 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3988 "javaa.tab.c" /* yacc.c:1646  */
+#line 3986 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 311:
 #line 1228 "javaa.y" /* yacc.c:1646  */
     {(yyval.intval)=(yyvsp[0].Rk).terminal;}
-#line 3994 "javaa.tab.c" /* yacc.c:1646  */
+#line 3992 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 312:
 #line 1232 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = (yyvsp[0].intval);}
-#line 4000 "javaa.tab.c" /* yacc.c:1646  */
+#line 3998 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 313:
 #line 1234 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = GetLocalVar((yyvsp[0].string));}
-#line 4006 "javaa.tab.c" /* yacc.c:1646  */
+#line 4004 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 314:
 #line 1238 "javaa.y" /* yacc.c:1646  */
     { (yyval.lookuplistptr) = AddToLookupList((yyvsp[0].lookuplistptr),(yyvsp[-3].intval),(yyvsp[-1].string)); }
-#line 4012 "javaa.tab.c" /* yacc.c:1646  */
+#line 4010 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 315:
 #line 1239 "javaa.y" /* yacc.c:1646  */
     {(yyval.lookuplistptr) = NULL;}
-#line 4018 "javaa.tab.c" /* yacc.c:1646  */
+#line 4016 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 316:
 #line 1243 "javaa.y" /* yacc.c:1646  */
     { (yyval.tablelistptr) = AddToTableList((yyvsp[0].tablelistptr),(yyvsp[-1].string)); }
-#line 4024 "javaa.tab.c" /* yacc.c:1646  */
+#line 4022 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 317:
 #line 1244 "javaa.y" /* yacc.c:1646  */
     {(yyval.tablelistptr) = NULL;}
-#line 4030 "javaa.tab.c" /* yacc.c:1646  */
+#line 4028 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 318:
 #line 1249 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 4;}
-#line 4036 "javaa.tab.c" /* yacc.c:1646  */
+#line 4034 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 319:
 #line 1251 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 5;}
-#line 4042 "javaa.tab.c" /* yacc.c:1646  */
+#line 4040 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 320:
 #line 1253 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 6;}
-#line 4048 "javaa.tab.c" /* yacc.c:1646  */
+#line 4046 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 321:
 #line 1255 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 7;}
-#line 4054 "javaa.tab.c" /* yacc.c:1646  */
+#line 4052 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 322:
 #line 1257 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 8;}
-#line 4060 "javaa.tab.c" /* yacc.c:1646  */
+#line 4058 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 323:
 #line 1259 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 9;}
-#line 4066 "javaa.tab.c" /* yacc.c:1646  */
+#line 4064 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 324:
 #line 1261 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 10;}
-#line 4072 "javaa.tab.c" /* yacc.c:1646  */
+#line 4070 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 325:
 #line 1263 "javaa.y" /* yacc.c:1646  */
     { (yyval.intval) = 11;}
-#line 4078 "javaa.tab.c" /* yacc.c:1646  */
+#line 4076 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 326:
@@ -4082,7 +4080,7 @@ yyreduce:
     {(yyval.argtype).type = IDENTIFIER;
               (yyval.argtype).stringval = (yyvsp[0].string);
              }
-#line 4086 "javaa.tab.c" /* yacc.c:1646  */
+#line 4084 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 327:
@@ -4090,7 +4088,7 @@ yyreduce:
     {(yyval.argtype).type = INTCONSTANT;
               (yyval.argtype).intval = (yyvsp[0].intval);
              }
-#line 4094 "javaa.tab.c" /* yacc.c:1646  */
+#line 4092 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 328:
@@ -4098,7 +4096,7 @@ yyreduce:
     {(yyval.argtype).type = LONGCONSTANT;
               (yyval.argtype).longval = (yyvsp[0].longval);
              }
-#line 4102 "javaa.tab.c" /* yacc.c:1646  */
+#line 4100 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 329:
@@ -4106,7 +4104,7 @@ yyreduce:
     {(yyval.argtype).type = STRING_LITERAL;
               (yyval.argtype).stringval = (yyvsp[0].string);
              }
-#line 4110 "javaa.tab.c" /* yacc.c:1646  */
+#line 4108 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 330:
@@ -4115,7 +4113,7 @@ yyreduce:
               (yyval.argtype).floatval = (yyvsp[0].floatval);
 	      /*message("got a float constant.");*/
              }
-#line 4119 "javaa.tab.c" /* yacc.c:1646  */
+#line 4117 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 331:
@@ -4124,25 +4122,25 @@ yyreduce:
               (yyval.argtype).doubleval = (yyvsp[0].doubleval);
 	      /*message("got a double constant.");*/
              }
-#line 4128 "javaa.tab.c" /* yacc.c:1646  */
+#line 4126 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 332:
 #line 1296 "javaa.y" /* yacc.c:1646  */
     { break; }
-#line 4134 "javaa.tab.c" /* yacc.c:1646  */
+#line 4132 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 333:
 #line 1297 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 4140 "javaa.tab.c" /* yacc.c:1646  */
+#line 4138 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 334:
 #line 1301 "javaa.y" /* yacc.c:1646  */
     { AddToExceptionList((yyvsp[-3].string),(yyvsp[-2].string),(yyvsp[-1].string),(yyvsp[0].string)); }
-#line 4146 "javaa.tab.c" /* yacc.c:1646  */
+#line 4144 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 335:
@@ -4151,77 +4149,77 @@ yyreduce:
 		  if ((yyvsp[0].intval) != 0) oops("Must have a class name or 0 here.");
 	          AddToExceptionList((yyvsp[-3].string),(yyvsp[-2].string),(yyvsp[-1].string),NULL); 
 		}
-#line 4155 "javaa.tab.c" /* yacc.c:1646  */
+#line 4153 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 336:
 #line 1307 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 4161 "javaa.tab.c" /* yacc.c:1646  */
+#line 4159 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 337:
 #line 1312 "javaa.y" /* yacc.c:1646  */
     { break; }
-#line 4167 "javaa.tab.c" /* yacc.c:1646  */
+#line 4165 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 338:
 #line 1313 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 4173 "javaa.tab.c" /* yacc.c:1646  */
+#line 4171 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 339:
 #line 1317 "javaa.y" /* yacc.c:1646  */
     { AddToLineNumberList((yyvsp[-1].string),(yyvsp[0].intval)); }
-#line 4179 "javaa.tab.c" /* yacc.c:1646  */
+#line 4177 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 340:
 #line 1318 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 4185 "javaa.tab.c" /* yacc.c:1646  */
+#line 4183 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 341:
 #line 1323 "javaa.y" /* yacc.c:1646  */
     { break; }
-#line 4191 "javaa.tab.c" /* yacc.c:1646  */
+#line 4189 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 342:
 #line 1324 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 4197 "javaa.tab.c" /* yacc.c:1646  */
+#line 4195 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 343:
 #line 1329 "javaa.y" /* yacc.c:1646  */
     { AddToUserLocalVarList((yyvsp[-4].string),(yyvsp[-3].string),(yyvsp[-2].string),(yyvsp[-1].string),(yyvsp[0].intval)); }
-#line 4203 "javaa.tab.c" /* yacc.c:1646  */
+#line 4201 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 344:
 #line 1330 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 4209 "javaa.tab.c" /* yacc.c:1646  */
+#line 4207 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 345:
 #line 1335 "javaa.y" /* yacc.c:1646  */
     { SetSourceFile((yyvsp[0].string)); }
-#line 4215 "javaa.tab.c" /* yacc.c:1646  */
+#line 4213 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
   case 346:
 #line 1336 "javaa.y" /* yacc.c:1646  */
     {break;}
-#line 4221 "javaa.tab.c" /* yacc.c:1646  */
+#line 4219 "javaa.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 4225 "javaa.tab.c" /* yacc.c:1646  */
+#line 4223 "javaa.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

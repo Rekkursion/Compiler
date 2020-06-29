@@ -11,6 +11,8 @@ object example
   var index: int
 
   def main () {
+	var x: int = 0
+
     sum = 0
     index = 0
     
@@ -18,6 +20,11 @@ object example
       sum = sum + index
       index = index + 1
     }
+	while (false) {}
+
+	for (x <- 0 to 3) {}
+	for (x <- 1 to 2) {println x}
+
     print ("The sum is ")
     println (sum)
   }

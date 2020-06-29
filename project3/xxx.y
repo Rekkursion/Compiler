@@ -437,6 +437,7 @@ statement
 	}
 	| WHILE OPEN_PAR {
 		push_b(loopLabelCounter);
+		igenJavaa("goto Lbegin_", loopLabelCounter, "\n");
 		igenJavaa("Lbegin_", loopLabelCounter, ":\n");
 		++loopLabelCounter;
 	} expr {
@@ -701,6 +702,7 @@ expr
 			igenJavaa("aload ", aItem->localNum, "\n");
 			genJavaa("arraylength\n");
 		}
+		push_e(_int, NULL);
 	}
 	;
 
@@ -1196,18 +1198,12 @@ void ugenJavaa(const char* idName) {
 	genJavaa("getstatic java.io.InputStream java.lang.System.in\n");
 	genJavaa("invokevirtual int java.io.InputStream.read()\n");
 	igenJavaa("istore ", tmp->localNum, "\n");
-	
-	// check if the input data is redundant (10) or not
-	igenJavaa("iload ", tmp->localNum, "\n");
-	genJavaa("ldc 10\n");
-	genJavaa("isub\n");
-	igenJavaa("ifeq Lread_begin_", readLabelCounter, "\n");
-	
+
 	// check if the read operation shall finish or not
 	igenJavaa("iload ", tmp->localNum, "\n");
-	genJavaa("ldc 13\n");
+	genJavaa("ldc 48\n");
 	genJavaa("isub\n");
-	igenJavaa("ifeq Lread_exit_", readLabelCounter, "\n");
+	igenJavaa("iflt Lread_exit_", readLabelCounter, "\n");
 	
 	// subtract 'tmp' (the value that just be read-in) by 48
 	igenJavaa("iload ", tmp->localNum, "\n");

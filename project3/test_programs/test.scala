@@ -1,11 +1,11 @@
-object Rekkursion {
+object test {
 	def max(a: int, b: int): int {
 		if (a > b)
 			return a
 		return b
 	}
 
-	def main(): int {
+	def main() {
 		var x: int
 		var y
 		read x
@@ -15,6 +15,6 @@ object Rekkursion {
 		
 		
 		
-		return 0
+		return
 	}
 }
